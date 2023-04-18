@@ -69,16 +69,16 @@ Each player is represented by a dictionary with the following keys:
 * `order`: The number of the player in the batting order. '0' is reserved for the pitcher, who does not bat.
 
 This endpoint returns a game object. This game object calculates a random game based on a player’s given stats. This consists of:
-`winner`: The team name of the winning team.
-`loser`: The team name of the losing team.
-`score`: The ending score of the game.
-`play_by_play`: A list of event objects that occurred in the game.
+* `winner`: The team name of the winning team.
+* `loser`: The team name of the losing team.
+* `score`: The ending score of the game.
+* `play_by_play`: A list of event objects that occurred in the game.
 
 Each event is represented by a dictionary with the following keys:
-`inning`: The inning of the game.
-`T/B` Top/Bottom of inning.
-`player`: Player name of batter.
-`happening`: What the player did. Some examples include Hit, Strikeout, Ball, etc.
+* `inning`: The inning of the game.
+* `T/B` Top/Bottom of inning.
+* `player`: Player name of batter.
+* `happening`: What the player did. Some examples include Walk, Strikeout, Home Run, etc.
 
 POST edit_roster/{team_id}
 
