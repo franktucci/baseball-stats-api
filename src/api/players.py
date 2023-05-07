@@ -11,7 +11,7 @@ import dotenv
 router = APIRouter()
 
 @router.get("/players/{player_id}", tags=["players"])
-def get_movie(player_id: int):
+def get_player(player_id: int):
     """
     This endpoint returns a player's stats for 2022.
 
@@ -39,32 +39,24 @@ def get_movie(player_id: int):
     `name` or created by using the `created_by` query parameters, as well as real=True for only real teams, or team={team_id} for a specific team.
     """
 
-    # stmt = (
-    #     sqlalchemy.select(
-    #         db.movies.c.movie_id,
-    #         db.movies.c.title,
-    #         db.characters.c.name,
-    #     )
-    #     .select_from(db.movies)
-    #     .join(db.characters)
-    #     .join(db.lines)
-    #     .where(db.movies.c.movie_id==movie_id)
-    # )
-    #
-    # with db.engine.connect() as conn:
-    #     result = conn.execute(stmt)
-    #     json = []
-    #     for row in result:
-    #         json.append(
-    #             {
-    #                 "movie_id": row.movie_id,
-    #                 "movie_title": row.title,
-    #                 "name": row.name,
-    #             }
-    #         )
+    stmt = (
+        sqlalchemy.select(
+            db.players.c.player_name,
+        )
+        .where(db.players.c.player_id == player_id)
+    )
+    with db.engine.connect() as conn:
+        players_result = conn.execute(stmt)
 
-    json = {}
-    return json
+    player = players_result.first()
+
+    if player is None:
+         raise HTTPException(status_code=404, detail="player not found.")
+
+    return {
+        'player_id': player.player_id,
+        'player_name': player.player_name
+    }
 
 
 class players_sort_options(str, Enum):
