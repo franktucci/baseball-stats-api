@@ -7,53 +7,53 @@ import json
 client = TestClient(app)
 
 
-def test_get_character():
-    response = client.get("/characters/7421")
+def test_get_player_by_id():
+    response = client.get("/players/7421")
     assert response.status_code == 200
 
-    with open("test/characters/7421.json", encoding="utf-8") as f:
+    with open("test/players/7421.json", encoding="utf-8") as f:
         assert response.json() == json.load(f)
 
-def test_get_character_2():
-    response = client.get("/characters/4")
+def test_get_player_by_id_2():
+    response = client.get("/players/4")
     assert response.status_code == 200
 
-    with open("test/characters/4.json", encoding="utf-8") as f:
+    with open("test/players/4.json", encoding="utf-8") as f:
         assert response.json() == json.load(f)
 
 
-def test_characters():
-    response = client.get("/characters/")
+def test_get_players():
+    response = client.get("/players/")
     assert response.status_code == 200
 
-    with open("test/characters/root.json", encoding="utf-8") as f:
+    with open("test/players/root.json", encoding="utf-8") as f:
         assert response.json() == json.load(f)
 
 
 def test_sort_filter():
     response = client.get(
-        "/characters/?name=amy&limit=50&offset=0&sort=number_of_lines"
+        "/players/?name=amy&limit=50&offset=0&sort=number_of_lines"
     )
     assert response.status_code == 200
 
     with open(
-        "test/characters/characters-name=amy&limit=50&offset=0&sort=number_of_lines.json",
+        "test/players/characters-name=amy&limit=50&offset=0&sort=number_of_lines.json",
         encoding="utf-8",
     ) as f:
         assert response.json() == json.load(f)
 
 def test_sort_filter_2():
     response = client.get(
-        "/characters/?offset=30&limit=10&sort=movie"
+        "/players/?offset=30&limit=10&sort=movie"
     )
     assert response.status_code == 200
 
     with open(
-        "test/characters/characters-offset=30&limit=10&sort=movie.json",
+        "test/players/characters-offset=30&limit=10&sort=movie.json",
         encoding="utf-8",
     ) as f:
         assert response.json() == json.load(f)
 
 def test_404():
-    response = client.get("/characters/400")
+    response = client.get("/players/400")
     assert response.status_code == 404
