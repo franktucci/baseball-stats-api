@@ -29,6 +29,41 @@ def test_get_players():
     with open("test/players/root.json", encoding="utf-8") as f:
         assert response.json() == json.load(f)
 
+def test_get_players_2():
+    response = client.get("/players/")
+    assert response.status_code == 200
+
+    with open("test/players/root.json", encoding="utf-8") as f:
+        assert response.json() == json.load(f)
+
+def test_put_player():
+    response = client.get("/players/(id)")
+    assert response.status_code == 200
+
+    with open("test/players/root.json", encoding="utf-8") as f:
+        assert response.json() == json.load(f)
+
+def test_put_player_2():
+    response = client.get("/players/(id)")
+    assert response.status_code == 200
+
+    with open("test/players/root.json", encoding="utf-8") as f:
+        assert response.json() == json.load(f)
+
+def test_delete_player():
+    response = client.get("/players/(id)")
+    assert response.status_code == 200
+
+    with open("test/players/root.json", encoding="utf-8") as f:
+        assert response.json() == json.load(f)
+
+def test_delete_player_2():
+    response = client.get("/players/(id)")
+    assert response.status_code == 200
+
+    with open("test/players/root.json", encoding="utf-8") as f:
+        assert response.json() == json.load(f)
+
 
 def test_sort_filter():
     response = client.get(
