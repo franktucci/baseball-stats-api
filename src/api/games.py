@@ -19,6 +19,15 @@ class GameJson(BaseModel):
     lineup1: LineupJson
     lineup2: LineupJson
 
+class EventCodes(Enum):
+    HIT = 0
+    DOUBLE = 1
+    TRIPLE = 2
+    HR = 3
+    WALK = 4
+    STRIKE_OUT = 5
+    HIT_PITCH = 6
+
 @router.post("/simulated-game/", tags=["simulated-game"])
 def simulate(game: GameJson):
     """
@@ -46,5 +55,6 @@ def simulate(game: GameJson):
         for player in team.lineup:
             if team.lineup.count(player) > 1:
                 raise HTTPException(status_code=422, detail="Team contains duplicate players.")
+
 
     return {}
