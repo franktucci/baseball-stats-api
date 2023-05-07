@@ -10,8 +10,8 @@ import dotenv
 
 router = APIRouter()
 
-@router.get("/movies/{movie_id}", tags=["movies"])
-def get_movie(movie_id: int):
+@router.get("/events/{event_id}", tags=["events"])
+def get_event(event_id: int):
     """
     This endpoint returns a single movie by its identifier. For each movie it returns:
     * `movie_id`: the internal id of the movie.
@@ -28,14 +28,17 @@ def get_movie(movie_id: int):
 
     stmt = (
         sqlalchemy.select(
-            db.movies.c.movie_id,
-            db.movies.c.title,
-            db.characters.c.name,
+            db.events.c.event_id,
+            db.events.c.game_id,
+            db.events.c.inning,
+            db.T_B.c.T_B,
+            db.events.c.player_id,
+            db.events.c.performance_enum,
         )
-        .select_from(db.movies)
+        .select_from(db.events)
         .join(db.characters)
         .join(db.lines)
-        .where(db.movies.c.movie_id==movie_id)
+        .where(db.events.c.event_id==event_id)
     )
 
     with db.engine.connect() as conn:
@@ -44,28 +47,30 @@ def get_movie(movie_id: int):
         for row in result:
             json.append(
                 {
-                    "movie_id": row.movie_id,
-                    "movie_title": row.title,
-                    "name": row.name,
+                    "event_id": row.event_id,
+                    "game_id": row.game_id,
+                    "inning": row.inning,
+                    "T_B": row.T_B,
+                    "player_id": row.player_id,
+                    "performance_enum": row.performance_enum
                 }
             )
 
     return json
 
 
-class movie_sort_options(str, Enum):
-    movie_title = "movie_title"
-    year = "year"
-    rating = "rating"
+class event_sort_options(str, Enum):
+    inning = "inning"
+    T_B = "T_B"
 
 
 # Add get parameters
-@router.get("/movies/", tags=["movies"])
+@router.get("/events/", tags=["events"])
 def list_movies(
     name: str = "",
     limit: int = Query(50, ge=1, le=250),
     offset: int = Query(0, ge=0),
-    sort: movie_sort_options = movie_sort_options.movie_title,
+    sort: event_sort_options = event_sort_options.inning,
 ):
     """
     This endpoint returns a list of movies. For each movie it returns:
@@ -90,31 +95,30 @@ def list_movies(
     number of results to skip before returning results.
     """
 
-    if sort is movie_sort_options.movie_title:
-        order_by = db.movies.c.title
-    elif sort is movie_sort_options.year:
-        order_by = db.movies.c.year
-    elif sort is movie_sort_options.rating:
-        order_by = sqlalchemy.desc(db.movies.c.imdb_rating)
+    if sort is event_sort_options.inning:
+        order_by = db.events.c.inning
+    elif sort is event_sort_options.T_B:
+        order_by = db.events.c.T_B
     else:
         assert False
 
     stmt = (
         sqlalchemy.select(
-            db.movies.c.movie_id,
-            db.movies.c.title,
-            db.movies.c.year,
-            db.movies.c.imdb_rating,
-            db.movies.c.imdb_votes,
+            db.events.c.event_id,
+            db.events.c.game_id,
+            db.events.c.inning,
+            db.events.c.T_B,
+            db.events.c.player_id,
+            db.events.c.performance_enum,
         )
         .limit(limit)
         .offset(offset)
-        .order_by(order_by, db.movies.c.movie_id)
+        .order_by(order_by, db.events.c.event_id)
     )
 
     # filter only if name parameter is passed
     if name != "":
-        stmt = stmt.where(db.movies.c.title.ilike(f"%{name}%"))
+        stmt = stmt.where(db.events.c.inning.ilike(f"%{name}%"))
 
     with db.engine.connect() as conn:
         result = conn.execute(stmt)
@@ -122,11 +126,12 @@ def list_movies(
         for row in result:
             json.append(
                 {
-                    "movie_id": row.movie_id,
-                    "movie_title": row.title,
-                    "year": row.year,
-                    "imdb_rating": row.imdb_rating,
-                    "imdb_votes": row.imdb_votes,
+                    "event_id": row.event_id,
+                    "game_id": row.game_id,
+                    "inning": row.inning,
+                    "T_B": row.T_B,
+                    "player_id": row.player_id,
+                    "performance_enum": row.performance_enum
                 }
             )
 
