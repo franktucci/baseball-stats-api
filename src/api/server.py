@@ -1,44 +1,50 @@
 from fastapi import FastAPI
-from src.api import players, teams, pkg_util
+from src.api import players, teams, games, pkg_util
 
 description = """
-Movie API returns dialog statistics on top hollywood movies from decades past.
+Baseball API. TBA
 
-## Characters
-
-You can:
-* **list characters with sorting and filtering options.**
-* **retrieve a specific character by id**
-
-## Movies
+## Players
 
 You can:
-* **list movies with sorting and filtering options.**
-* **retrieve a specific movie by id**
+* **Lookup information on Players**
+
+## Teams
+
+You can:
+* **Lookup information on Teams**
+
+## Games
+* **Play a simulated game**
 """
+
 tags_metadata = [
     {
-        "name": "characters",
-        "description": "Access information on characters in movies.",
+        "name": "players",
+        "description": "Access information on players.",
     },
     {
-        "name": "movies",
-        "description": "Access information on top-rated movies.",
+        "name": "teams",
+        "description": "Access information on teams.",
     },
+    {
+        "name": "games",
+        "description": "Play a simulated game."
+    }
 ]
 
 app = FastAPI(
-    title="Movie API",
+    title="Baseball API",
     description=description,
     version="0.0.1",
     contact={
-        "name": "Randall Caler",
-        "email": "rcaler@calpoly.edu",
+        "name": "Randall Caler and Frank Tucci",
+        "email": "rcaler@calpoly.edu, ftucci@calpoly.edu",
     },
     openapi_tags=tags_metadata,
 )
 # app.include_router(events.router)
-# app.include_router(games.router)
+app.include_router(games.router)
 app.include_router(players.router)
 # app.include_router(positions.router)
 app.include_router(teams.router)
