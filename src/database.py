@@ -38,10 +38,11 @@ def database_connection_url():
 # Create a new DB engine based on our connection string
 engine = sqlalchemy.create_engine(database_connection_url())
 metadata_obj = sqlalchemy.MetaData()
-movies = sqlalchemy.Table("movies", metadata_obj, autoload_with=engine)
-characters = sqlalchemy.Table("characters", metadata_obj, autoload_with=engine)
-lines = sqlalchemy.Table("lines", metadata_obj, autoload_with=engine)
-conversations = sqlalchemy.Table("conversations", metadata_obj, autoload_with=engine)
+# movies = sqlalchemy.Table("movies", metadata_obj, autoload_with=engine)
+# characters = sqlalchemy.Table("characters", metadata_obj, autoload_with=engine)
+# lines = sqlalchemy.Table("lines", metadata_obj, autoload_with=engine)
+# conversations = sqlalchemy.Table("conversations", metadata_obj, autoload_with=engine)
+players = sqlalchemy.Table("players", metadata_obj, autoload_with=engine)
 
 # TODO: Below is purely an example of reading and then writing a csv from supabase.
 # You should delete this code for your working example.
