@@ -26,4 +26,4 @@ engine = sqlalchemy.create_engine(database_connection_url())
 metadata_obj = sqlalchemy.MetaData()
 
 players = sqlalchemy.Table("players", metadata_obj, autoload_with=engine)
-# teams = sqlalchemy.Table("teams", metadata_obj, autoload_with=engine)
+teams = sqlalchemy.Table("teams", metadata_obj, autoload_with=engine)

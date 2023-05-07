@@ -14,17 +14,114 @@ router = APIRouter()
 @router.get("/teams/{team_id}", tags=["teams"])
 def get_team(team_id: int):
     """
-    This endpoint returns a single movie by its identifier. For each movie it returns:
-    * `movie_id`: the internal id of the movie.
-    * `title`: The title of the movie.
-    * `top_characters`: A list of characters that are in the movie. The characters
-      are ordered by the number of lines they have in the movie. The top five
-      characters are listed.
+    This endpoint returns a team's information in 2022. It returns:
 
-    Each character is represented by a dictionary with the following keys:
-    * `character_id`: the internal id of the character.
-    * `character`: The name of the character.
-    * `num_lines`: The number of lines the character has in the movie.
+created_by: The user who created the team. Is null for real-life teams.
+team_city: The city the team is located in. Can be null for virtual teams.
+team_name: The name of the team.
+players: A list of the team's player_id's. Technically, a user-created team could have no players.
+    """
+
+    stmt = (
+        sqlalchemy.select(
+            db.teams.c.created_by,
+            db.teams.c.team_city,
+            db.teams.c.team_name,
+        )
+        .select_from(db.teams)
+        .join(db.players)
+        .where(db.players.c.team_id==team_id)
+    )
+
+    with db.engine.connect() as conn:
+        result = conn.execute(stmt)
+        json = []
+        for row in result:
+            json.append(
+                {
+                    "created_by": row.created_by,
+                    "team_city": row.team_city,
+                    "team_name": row.team_name,
+                    #add list of players
+                }
+            )
+
+    return json
+
+
+class team_sort_options(str, Enum):
+    team_name = "team_name"
+    created_by = "created_by"
+
+
+# Add get parameters
+@router.get("/teams/", tags=["teams"])
+def get_teams(
+    name: str = "",
+    limit: int = Query(50, ge=1, le=250),
+    offset: int = Query(0, ge=0),
+    sort: team_sort_options = team_sort_options.team_name,
+):
+    """
+    This endpoint returns a list of teams in 2022. For each team it returns:
+
+team_id: The internal id of the team. Can be used to query the /teams/{team_id} endpoint.
+created_by: The user who created the team. Is null for real-life teams.
+team_city: The city the team is located in. Can be null for fictional teams.
+team_name: The name of the team.
+You can filter for teams whose name contains a string by using the name or created by by using the created_by 
+query parameters, as well as real=True for only real-life teams.
+    """
+
+    if sort is team_sort_options.team_name:
+        order_by = db.teams.c.team_name
+    elif sort is team_sort_options.created_by:
+        order_by = db.teams.c.created_by
+    else:
+        assert False
+
+    stmt = (
+        sqlalchemy.select(
+            db.teams.c.team_id,
+            db.teams.c.created_by,
+            db.teams.c.team_city,
+            db.teams.c.team_name,
+        )
+        .limit(limit)
+        .offset(offset)
+        .order_by(order_by, db.teams.c.team_id)
+    )
+
+    # filter only if name parameter is passed
+    if name != "":
+        stmt = stmt.where(db.teams.c.team_name.ilike(f"%{name}%"))
+
+    with db.engine.connect() as conn:
+        result = conn.execute(stmt)
+        json = []
+        for row in result:
+            json.append(
+                {
+                    "team_id": row.team_id,
+                    "created_by": row.created_by,
+                    "team_city": row.team_city,
+                    "team_name": row.team_name,
+                }
+            )
+
+    return json
+
+@router.get("/teams/{team_id}", tags=["teams"])
+def put_team(team_id: int):
+    """
+    This endpoint adds a team roster if the id does not exist, otherwise overwrites an existing team if the team_id is the same. 
+    This endpoint must take a non-null value for the created_by section as it cannot overwrite a real-life team. Accepts a team object:
+
+team_id: The internal id of the team. Can be used to query the /teams/{team_id} endpoint.
+created_by: The user who created the team. Is null for real-life teams.
+team_city: The city the team is located in. Can be null for virtual teams.
+team_name: The name of the team.
+players: A list of the team's player_id's. Technically, a user-created team could have no players.
     """
 
     stmt = (
@@ -45,77 +142,31 @@ def get_team(team_id: int):
         for row in result:
             json.append(
                 {
-                    "movie_id": row.movie_id,
-                    "movie_title": row.title,
-                    "name": row.name,
+                    # "movie_id": row.movie_id,
+                    # "movie_title": row.title,
+                    # "name": row.name,
                 }
             )
 
     return json
 
-
-class movie_sort_options(str, Enum):
-    movie_title = "movie_title"
-    year = "year"
-    rating = "rating"
-
-
-# Add get parameters
-@router.get("/movies/", tags=["movies"])
-def list_movies(
-    name: str = "",
-    limit: int = Query(50, ge=1, le=250),
-    offset: int = Query(0, ge=0),
-    sort: movie_sort_options = movie_sort_options.movie_title,
-):
+@router.get("/teams/{team_id}", tags=["teams"])
+def delete_team(team_id: int):
     """
-    This endpoint returns a list of movies. For each movie it returns:
-    * `movie_id`: the internal id of the movie. Can be used to query the
-      `/movies/{movie_id}` endpoint.
-    * `movie_title`: The title of the movie.
-    * `year`: The year the movie was released.
-    * `imdb_rating`: The IMDB rating of the movie.
-    * `imdb_votes`: The number of IMDB votes for the movie.
-
-    You can filter for movies whose titles contain a string by using the
-    `name` query parameter.
-
-    You can also sort the results by using the `sort` query parameter:
-    * `movie_title` - Sort by movie title alphabetically.
-    * `year` - Sort by year of release, earliest to latest.
-    * `rating` - Sort by rating, highest to lowest.
-
-    The `limit` and `offset` query
-    parameters are used for pagination. The `limit` query parameter specifies the
-    maximum number of results to return. The `offset` query parameter specifies the
-    number of results to skip before returning results.
+    This endpoint deletes the specified team by team_id. Will not delete a real-life team.
     """
-
-    if sort is movie_sort_options.movie_title:
-        order_by = db.movies.c.title
-    elif sort is movie_sort_options.year:
-        order_by = db.movies.c.year
-    elif sort is movie_sort_options.rating:
-        order_by = sqlalchemy.desc(db.movies.c.imdb_rating)
-    else:
-        assert False
 
     stmt = (
         sqlalchemy.select(
             db.movies.c.movie_id,
             db.movies.c.title,
-            db.movies.c.year,
-            db.movies.c.imdb_rating,
-            db.movies.c.imdb_votes,
+            db.characters.c.name,
         )
-        .limit(limit)
-        .offset(offset)
-        .order_by(order_by, db.movies.c.movie_id)
+        .select_from(db.movies)
+        .join(db.characters)
+        .join(db.lines)
+        .where(db.movies.c.movie_id==team_id)
     )
-
-    # filter only if name parameter is passed
-    if name != "":
-        stmt = stmt.where(db.movies.c.title.ilike(f"%{name}%"))
 
     with db.engine.connect() as conn:
         result = conn.execute(stmt)
@@ -123,11 +174,9 @@ def list_movies(
         for row in result:
             json.append(
                 {
-                    "movie_id": row.movie_id,
-                    "movie_title": row.title,
-                    "year": row.year,
-                    "imdb_rating": row.imdb_rating,
-                    "imdb_votes": row.imdb_votes,
+                    # "movie_id": row.movie_id,
+                    # "movie_title": row.title,
+                    # "name": row.name,
                 }
             )
 
