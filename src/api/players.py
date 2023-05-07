@@ -54,7 +54,7 @@ def get_player(player_id: int):
          raise HTTPException(status_code=404, detail="player not found.")
 
     return {
-        'player_id': player.player_id,
+        'player_id': player_id,
         'player_name': player.player_name
     }
 
