@@ -97,45 +97,34 @@ def list_players(
     * `batting_average`: Calculated Hit / At-bat
     """
 
-    # if sort is movie_sort_options.movie_title:
-    #     order_by = db.movies.c.title
-    # elif sort is movie_sort_options.year:
-    #     order_by = db.movies.c.year
-    # elif sort is movie_sort_options.rating:
-    #     order_by = sqlalchemy.desc(db.movies.c.imdb_rating)
-    # else:
-    #     assert False
-    #
-    # stmt = (
-    #     sqlalchemy.select(
-    #         db.movies.c.movie_id,
-    #         db.movies.c.title,
-    #         db.movies.c.year,
-    #         db.movies.c.imdb_rating,
-    #         db.movies.c.imdb_votes,
-    #     )
-    #     .limit(limit)
-    #     .offset(offset)
-    #     .order_by(order_by, db.movies.c.movie_id)
-    # )
-    #
-    # # filter only if name parameter is passed
-    # if name != "":
-    #     stmt = stmt.where(db.movies.c.title.ilike(f"%{name}%"))
-    #
-    # with db.engine.connect() as conn:
-    #     result = conn.execute(stmt)
-    #     json = []
-    #     for row in result:
-    #         json.append(
-    #             {
-    #                 "movie_id": row.movie_id,
-    #                 "movie_title": row.title,
-    #                 "year": row.year,
-    #                 "imdb_rating": row.imdb_rating,
-    #                 "imdb_votes": row.imdb_votes,
-    #             }
-    #         )
+    if sort is players_sort_options.player_name:
+        order_by = db.players.c.player_name
+    else:
+        assert False
 
-    json = {}
+    stmt = (
+        sqlalchemy.select(
+            db.players.c.player_id,
+            db.players.c.player_name
+        )
+        .limit(limit)
+        .offset(offset)
+        .order_by(order_by, db.players.c.player_id)
+    )
+
+    # filter only if name parameter is passed
+    if name != "":
+        stmt = stmt.where(db.players.c.player_name.ilike(f"%{name}%"))
+
+    with db.engine.connect() as conn:
+        result = conn.execute(stmt)
+        json = []
+        for row in result:
+            json.append(
+                {
+                    'player_id': row.player_id,
+                    'player_name': row.player_name
+                }
+            )
+
     return json
