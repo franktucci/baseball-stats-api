@@ -28,7 +28,6 @@ def test_get_games():
     with open("test/games/root.json", encoding="utf-8") as f:
         assert response.json() == json.load(f)
 
-
 def test_sort_filter():
     response = client.get("/games/?name=amy&limit=10")
     assert response.status_code == 200
