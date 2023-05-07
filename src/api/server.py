@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api import players, teams, pkg_util
+from src.api import players, pkg_util
 
 description = """
 Movie API returns dialog statistics on top hollywood movies from decades past.
@@ -41,7 +41,7 @@ app = FastAPI(
 # app.include_router(games.router)
 app.include_router(players.router)
 # app.include_router(positions.router)
-app.include_router(teams.router)
+# app.include_router(teams.router)
 app.include_router(pkg_util.router)
 
 @app.get("/")
