@@ -8,17 +8,17 @@ client = TestClient(app)
 
 
 def test_get_player_by_id():
-    response = client.get("/players/7421")
+    response = client.get("/players/29")
     assert response.status_code == 200
 
-    with open("test/players/7421.json", encoding="utf-8") as f:
+    with open("test/players/29.json", encoding="utf-8") as f:
         assert response.json() == json.load(f)
 
 def test_get_player_by_id_2():
-    response = client.get("/players/4")
+    response = client.get("/players/52")
     assert response.status_code == 200
 
-    with open("test/players/4.json", encoding="utf-8") as f:
+    with open("test/players/52.json", encoding="utf-8") as f:
         assert response.json() == json.load(f)
 
 

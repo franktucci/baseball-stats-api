@@ -24,6 +24,7 @@ players: A list of the team's player_id's. Technically, a user-created team coul
 
     stmt = (
         sqlalchemy.select(
+            db.teams.c.team_id,
             db.teams.c.created_by,
             db.teams.c.team_city,
             db.teams.c.team_name,
@@ -39,6 +40,7 @@ players: A list of the team's player_id's. Technically, a user-created team coul
         for row in result:
             json.append(
                 {
+                    "team_id": row.team_id,
                     "created_by": row.created_by,
                     "team_city": row.team_city,
                     "team_name": row.team_name,
