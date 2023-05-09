@@ -29,13 +29,14 @@ def get_player(player_id: int):
     This endpoint returns a player's stats for 2022.
 
     * `player_id`: The internal id of the player. Can be used to query the
-      `/view_player/{player_id}` endpoint.
+      `/players/{player_id}` endpoint.
     * `player_name`: The name of the player.
     * `created_by`: The user who created the team. Is null for real-life teams.
-    * `positions`: A list of position_ids that the player is able to play.
+    * `team_id`: The internal id of the team the player plays on. Can be used to query the
+      `/teams/{team_id}` endpoint.
+    * `positions`: A string representation of the positions a character can play.
     * `at_bat`: The number of times a player has been up to bat, total.
-    * `runs`: The number of runs scored by the player.
-    * `hits`: The number of times the ball is hit and the batter gets to at least first base.
+    * `singles`: The number of times the ball is hit and the batter gets to first base.
     * `doubles`: The number of times the ball is hit and grants the batter 2 bases.
     * `triples`: The number of times the ball is hit and grants the batter 3 bases.
     * `home_runs`: The number of times the batter hits a home run.
@@ -54,7 +55,12 @@ def get_player(player_id: int):
 
     stmt = (
         sqlalchemy.select(
-            db.players.c.player_name,
+            db.players.c.player_id,
+            db.players.c.first_name,
+            db.players.c.last_name,
+            db.players.c.team_id,
+            db.players.c.created_by,
+            db.players.c.position
         )
         .where(db.players.c.player_id == player_id)
     )
@@ -66,14 +72,56 @@ def get_player(player_id: int):
     if player is None:
          raise HTTPException(status_code=404, detail="player not found.")
 
+    stmt = (
+        sqlalchemy.select(
+            db.events.c.enum,
+            sqlalchemy.func.count()
+        )
+        .where(db.events.c.player_id == player_id)
+        .group_by(db.events.c.enum)
+    )
+    with db.engine.connect() as conn:
+        events_result = conn.execute(stmt)
+
+    events = {}
+
+    for row in events_result:
+        events[row[0]] = row[1]
+
+    singles = events.get(EventCodes.SINGLE.value) or 0
+    doubles = events.get(EventCodes.DOUBLE.value) or 0
+    triples = events.get(EventCodes.TRIPLE.value) or 0
+    hrs = events.get(EventCodes.HR.value) or 0
+    walks = events.get(EventCodes.WALK.value) or 0
+    strike_outs = events.get(EventCodes.STRIKE_OUT.value) or 0
+    hit_bys = events.get(EventCodes.HIT_PITCH.value) or 0
+    sac_flies = events.get(EventCodes.SAC_FLY.value) or 0
+    other_outs = events.get(EventCodes.OTHER_OUT.value) or 0
+    stolen = events.get(EventCodes.STOLEN.value) or 0
+    caught_stealing = events.get(EventCodes.CAUGHT_STEALING.value) or 0
+    hits = singles + doubles + triples + hrs
+    at_bats = hits + walks + strike_outs + hit_bys + sac_flies + other_outs
+
     return {
         'player_id': player_id,
-        'player_name': player.player_name
+        'player_name': player.first_name + " " + player.last_name,
+        'positions': player.position,
+        'at_bat': at_bats,
+        'singles': singles,
+        'doubles': doubles,
+        'home_runs': hrs,
+        'walks': walks,
+        'strike_outs': strike_outs,
+        'hit_by_pitch': hit_bys,
+        'sacrifice_flies': sac_flies,
+        'stolen_bases': stolen,
+        'caught_stealing': caught_stealing,
+        'on_base_percent': 0.0 if (at_bats + walks + hit_bys + sac_flies) == 0 else round((hits + walks + hit_bys) / (at_bats + walks + hit_bys + sac_flies), 3),
+        'batting_average': 0.0 if at_bats == 0 else round(hits / at_bats, 3)
     }
 
-
 class players_sort_options(str, Enum):
-    player_name = "player_name"
+    player_name = "first_name"
     # year = "year"
     # rating = "rating"
 
@@ -111,7 +159,7 @@ def list_players(
     """
 
     if sort is players_sort_options.player_name:
-        order_by = db.players.c.player_name
+        order_by = db.players.c.first_name
     else:
         assert False
 
@@ -136,7 +184,7 @@ def list_players(
             json.append(
                 {
                     'player_id': row.player_id,
-                    'player_name': row.player_name
+                    'player_name': row.first_name + " " + row.last_name
                 }
             )
 

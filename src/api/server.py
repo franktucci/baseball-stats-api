@@ -46,7 +46,6 @@ app = FastAPI(
 # app.include_router(events.router)
 app.include_router(games.router)
 app.include_router(players.router)
-# app.include_router(positions.router)
 app.include_router(teams.router)
 app.include_router(pkg_util.router)
 

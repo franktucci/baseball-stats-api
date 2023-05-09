@@ -27,3 +27,5 @@ metadata_obj = sqlalchemy.MetaData()
 
 players = sqlalchemy.Table("players", metadata_obj, autoload_with=engine)
 teams = sqlalchemy.Table("teams", metadata_obj, autoload_with=engine)
+games = sqlalchemy.Table("games", metadata_obj, autoload_with=engine)
+events = sqlalchemy.Table("events", metadata_obj, autoload_with=engine)
