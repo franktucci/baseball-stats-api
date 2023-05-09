@@ -11,13 +11,17 @@ import dotenv
 router = APIRouter()
 
 class EventCodes(Enum):
-    HIT = 0
+    SINGLE = 0
     DOUBLE = 1
     TRIPLE = 2
     HR = 3
     WALK = 4
     STRIKE_OUT = 5
     HIT_PITCH = 6
+    SAC_FLY = 7
+    OTHER_OUT = 8
+    STOLEN = 9
+    CAUGHT_STEALING = 10
 
 @router.get("/players/{player_id}", tags=["players"])
 def get_player(player_id: int):
