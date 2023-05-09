@@ -15,11 +15,13 @@ router = APIRouter()
 def get_team(team_id: int):
     """
     This endpoint returns a team's information in 2022. It returns:
-
-created_by: The user who created the team. Is null for real-life teams.
-team_city: The city the team is located in. Can be null for virtual teams.
-team_name: The name of the team.
-players: A list of the team's player_id's. Technically, a user-created team could have no players.
+    * `team_id`: The internal id of the team. Can be used to query the
+      `/teams/{team_id}` endpoint.
+    * `created_by`: The user who created the team. Is null for real-life teams.
+    * `team_city`: The city the team is located in. Can be null for virtual teams.
+    * `team_name`: The name of the team.
+    * `players`: A list of the team's player_id's. Can be used to query the
+      `/players/{player_id}` endpoint.
     """
 
     stmt = (
@@ -29,27 +31,37 @@ players: A list of the team's player_id's. Technically, a user-created team coul
             db.teams.c.team_city,
             db.teams.c.team_name,
         )
-        .select_from(db.teams)
-        .join(db.players)
-        .where(db.players.c.team_id==team_id)
+        .where(db.teams.c.team_id == team_id)
     )
-
     with db.engine.connect() as conn:
-        result = conn.execute(stmt)
-        json = []
-        for row in result:
-            json.append(
-                {
-                    "team_id": row.team_id,
-                    "created_by": row.created_by,
-                    "team_city": row.team_city,
-                    "team_name": row.team_name,
-                    #add list of players
-                }
-            )
+        teams_result = conn.execute(stmt)
 
-    return json
+    team = teams_result.first()
 
+    if team is None:
+         raise HTTPException(status_code=404, detail="team not found.")
+
+    stmt = (
+        sqlalchemy.select(
+            db.players.c.player_id
+        )
+        .where(db.players.c.team_id == team_id)
+    )
+    with db.engine.connect() as conn:
+        players_result = conn.execute(stmt)
+
+    players = []
+
+    for row in players_result:
+        players.append(row[0])
+
+    return {
+        "team_id": team.team_id,
+        "created_by": team.created_by,
+        "team_city": team.team_city,
+        "team_name": team.team_name,
+        "players": players
+    }
 
 class team_sort_options(str, Enum):
     team_name = "team_name"
@@ -58,7 +70,7 @@ class team_sort_options(str, Enum):
 
 # Add get parameters
 @router.get("/teams/", tags=["teams"])
-def get_teams(
+def list_teams(
     name: str = "",
     limit: int = Query(50, ge=1, le=250),
     offset: int = Query(0, ge=0),
@@ -71,7 +83,7 @@ team_id: The internal id of the team. Can be used to query the /teams/{team_id} 
 created_by: The user who created the team. Is null for real-life teams.
 team_city: The city the team is located in. Can be null for fictional teams.
 team_name: The name of the team.
-You can filter for teams whose name contains a string by using the name or created by by using the created_by 
+You can filter for teams whose name contains a string by using the name or created by by using the created_by
 query parameters, as well as real=True for only real-life teams.
     """
 
@@ -113,10 +125,10 @@ query parameters, as well as real=True for only real-life teams.
 
     return json
 
-@router.get("/teams/{team_id}", tags=["teams"])
+@router.put("/teams/{team_id}", tags=["teams"])
 def put_team(team_id: int):
     """
-    This endpoint adds a team roster if the id does not exist, otherwise overwrites an existing team if the team_id is the same. 
+    This endpoint adds a team roster if the id does not exist, otherwise overwrites an existing team if the team_id is the same.
     This endpoint must take a non-null value for the created_by section as it cannot overwrite a real-life team. Accepts a team object:
 
 team_id: The internal id of the team. Can be used to query the /teams/{team_id} endpoint.
@@ -152,7 +164,7 @@ players: A list of the team's player_id's. Technically, a user-created team coul
 
     return json
 
-@router.get("/teams/{team_id}", tags=["teams"])
+@router.delete("/teams/{team_id}", tags=["teams"])
 def delete_team(team_id: int):
     """
     This endpoint deletes the specified team by team_id. Will not delete a real-life team.

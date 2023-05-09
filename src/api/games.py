@@ -34,7 +34,48 @@ class EventCodes(Enum):
 
 
 
-@router.post("/simulated-game/", tags=["simulated-game"])
+@router.get("/games/{game_id}", tags=["games"])
+def get_game(game_id: int):
+    """
+    This endpoint returns a game in 2022. It returns:
+    * `game_id`: The internal id of the team. Can be used to query the
+      `/games/{game_id}` endpoint.
+    * `created_by`: The user who created the team. Is null for real-life games.
+    * `home_team`: The id of the home team.
+    * `away_name`: The id of the team.
+    * `home_score`: The score of the home team.
+    * `away_score`: The score of the away team.
+    """
+
+    stmt = (
+        sqlalchemy.select(
+            db.games.c.game_id,
+            db.games.c.created_by,
+            db.games.c.home_team_id,
+            db.games.c.away_team_id,
+            db.games.c.home_score,
+            db.games.c.away_score
+        )
+        .where(db.games.c.game_id == game_id)
+    )
+    with db.engine.connect() as conn:
+        games_result = conn.execute(stmt)
+
+    game = games_result.first()
+
+    if game is None:
+        raise HTTPException(status_code=404, detail="game not found.")
+
+    return {
+        "game_id": game.game_id,
+        "created_by": game.created_by,
+        "home_team_id": game.home_team_id,  # change these to name in the future
+        "away_team_id": game.away_team_id,
+        "home_score": game.home_score,
+        "away_score": game.away_score
+    }
+
+@router.post("/games/", tags=["games"])
 def simulate(game: GameJson):
     """
     This endpoint takes in two lineup objects and returns a simulated game object. A lineup consists of:
@@ -61,6 +102,5 @@ def simulate(game: GameJson):
         for player in team.lineup:
             if team.lineup.count(player) > 1:
                 raise HTTPException(status_code=422, detail="Team contains duplicate players.")
-
 
     return {}

@@ -14,7 +14,7 @@ class Game:
     game_id: int
     created_by: str
     home_team_id: int
-    away_team_id: str
+    away_team_id: int
     home_score: str
     away_score: str
 
