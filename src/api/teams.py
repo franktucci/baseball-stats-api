@@ -7,6 +7,8 @@ import os
 import dotenv
 import sqlalchemy
 import dotenv
+from pydantic import BaseModel
+from typing import List
 
 router = APIRouter()
 
@@ -67,6 +69,37 @@ class team_sort_options(str, Enum):
     team_name = "team_name"
     created_by = "created_by"
 
+class TeamJson(BaseModel):
+    created_by: str
+    team_city: str
+    team_name: str
+
+@router.post("/teams/", tags=["teams"])
+def add_team(team: TeamJson):
+    """
+    This endpoint adds user-created team roster.
+    This endpoint must take a non-null value for the created_by section as it cannot overwrite a real-life team. Accepts a team object:
+    """
+    if team.created_by is None:
+        raise HTTPException(status_code=422, detail="must specify a team creator.")
+
+    stmt = (sqlalchemy.select(db.teams.c.team_id).order_by(sqlalchemy.desc('team_id')))
+
+    with db.engine.connect() as conn:
+        team_result = conn.execute(stmt)
+
+    team_id = team_result.first().team_id + 1
+
+    with db.engine.begin() as conn:
+        conn.execute(
+            db.teams.insert().values(
+                team_id=team_id,
+                created_by=team.created_by,
+                team_city=team.team_city,
+                team_name=team.team_name
+            )
+        )
+    return {'team_id': team_id}
 
 # Add get parameters
 @router.get("/teams/", tags=["teams"])
@@ -125,73 +158,34 @@ query parameters, as well as real=True for only real-life teams.
 
     return json
 
-@router.put("/teams/{team_id}", tags=["teams"])
-def put_team(team_id: int):
-    """
-    This endpoint adds a team roster if the id does not exist, otherwise overwrites an existing team if the team_id is the same.
-    This endpoint must take a non-null value for the created_by section as it cannot overwrite a real-life team. Accepts a team object:
-
-team_id: The internal id of the team. Can be used to query the /teams/{team_id} endpoint.
-created_by: The user who created the team. Is null for real-life teams.
-team_city: The city the team is located in. Can be null for virtual teams.
-team_name: The name of the team.
-players: A list of the team's player_id's. Technically, a user-created team could have no players.
-    """
-
-    stmt = (
-        sqlalchemy.select(
-            db.movies.c.movie_id,
-            db.movies.c.title,
-            db.characters.c.name,
-        )
-        .select_from(db.movies)
-        .join(db.characters)
-        .join(db.lines)
-        .where(db.movies.c.movie_id==team_id)
-    )
-
-    with db.engine.connect() as conn:
-        result = conn.execute(stmt)
-        json = []
-        for row in result:
-            json.append(
-                {
-                    # "movie_id": row.movie_id,
-                    # "movie_title": row.title,
-                    # "name": row.name,
-                }
-            )
-
-    return json
-
-@router.delete("/teams/{team_id}", tags=["teams"])
-def delete_team(team_id: int):
-    """
-    This endpoint deletes the specified team by team_id. Will not delete a real-life team.
-    """
-
-    stmt = (
-        sqlalchemy.select(
-            db.movies.c.movie_id,
-            db.movies.c.title,
-            db.characters.c.name,
-        )
-        .select_from(db.movies)
-        .join(db.characters)
-        .join(db.lines)
-        .where(db.movies.c.movie_id==team_id)
-    )
-
-    with db.engine.connect() as conn:
-        result = conn.execute(stmt)
-        json = []
-        for row in result:
-            json.append(
-                {
-                    # "movie_id": row.movie_id,
-                    # "movie_title": row.title,
-                    # "name": row.name,
-                }
-            )
-
-    return json
+# @router.delete("/teams/{team_id}", tags=["teams"])
+# def delete_team(team_id: int):
+#     """
+#     This endpoint deletes the specified team by team_id. Will not delete a real-life team.
+#     """
+#
+#     stmt = (
+#         sqlalchemy.select(
+#             db.movies.c.movie_id,
+#             db.movies.c.title,
+#             db.characters.c.name,
+#         )
+#         .select_from(db.movies)
+#         .join(db.characters)
+#         .join(db.lines)
+#         .where(db.movies.c.movie_id==team_id)
+#     )
+#
+#     with db.engine.connect() as conn:
+#         result = conn.execute(stmt)
+#         json = []
+#         for row in result:
+#             json.append(
+#                 {
+#                     # "movie_id": row.movie_id,
+#                     # "movie_title": row.title,
+#                     # "name": row.name,
+#                 }
+#             )
+#
+#     return json
