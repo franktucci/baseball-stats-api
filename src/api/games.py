@@ -10,7 +10,6 @@ import dotenv
 from pydantic import BaseModel
 from typing import List
 import random
-import numpy as np
 
 router = APIRouter()
 
@@ -34,10 +33,20 @@ def get_game(game_id: int):
     * `game_id`: The internal id of the team. Can be used to query the
       `/games/{game_id}` endpoint.
     * `created_by`: The user who created the team. Is null for real-life games.
-    * `home_team`: The id of the home team.
-    * `away_name`: The id of the team.
+    * `home_team`: The name of the home team.
+    * `home_team_id`: The id of the home team. Can be used to query the `/teams/{team_id}` endpoint.
+    * `away_team`: The name of the away team.
+    * `away_team_id`: The id of the away team. Can be used to query the `/teams/{team_id}` endpoint.
     * `home_score`: The score of the home team.
     * `away_score`: The score of the away team.
+    * `events`: A list of events during the game.
+
+    Each event is represented by a dictionary with the following keys:
+    * `event_id`: the internal id of the event.
+    * `inning`: The inning.
+    * `T/B`: 0 for top, 1 for bottom.
+    * `player_id`: The player id. Can be used to query the `/players/{player_id}` endpoint.
+    * `happening`: What the player did.
     """
 
     stmt = (
