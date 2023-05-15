@@ -85,6 +85,22 @@ class GameJson(BaseModel):
     lineup1: LineupJson
     lineup2: LineupJson
 
+def simulate_inning():
+        home_bat_order = 1
+        away_bat_order = 1
+        count_BTs(BT)
+        BT+=1
+        inning+=1
+
+def count_innings(inning: int, BT: int):
+    while inning < 10:
+        simulate_inning()
+
+def count_BTs(BT: int):
+    while BT < 2:
+        outs = 0
+        bases = [False, False, False]
+
 @router.post("/games/", tags=["games"])
 def simulate(game: GameJson):
     """
