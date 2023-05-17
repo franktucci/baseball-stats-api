@@ -85,21 +85,33 @@ class GameJson(BaseModel):
     lineup1: LineupJson
     lineup2: LineupJson
 
-def simulate_inning():
-        home_bat_order = 1
-        away_bat_order = 1
-        count_BTs(BT)
-        BT+=1
-        inning+=1
+def simulate_innings(inning: int):
+        while inning < 10:
+            BT=0
+            home_bat_order = 1
+            away_bat_order = 1
+            simulate_BTs(BT)
+            BT+=1
+            inning+=1
 
-def count_innings(inning: int, BT: int):
-    while inning < 10:
-        simulate_inning()
-
-def count_BTs(BT: int):
+def simulate_BTs(BT: int):
     while BT < 2:
         outs = 0
         bases = [False, False, False]
+        simulate_outs(outs)
+        BT+=1
+
+def simulate_outs(outs: int):
+    while outs < 3:
+            bat_order = home_bat_order if BT == 0 else away_bat_order
+            lineup = game.lineup1.lineup if BT == 0 else game.lineup2.lineup
+
+def simulate_at_bat():
+    # input: batter, strikes, walks
+    # ouput: get a strike, get a walk, get on base, get
+    # half_of_inning:
+        # state of field whose on base
+    half_of_inning=0
 
 @router.post("/games/", tags=["games"])
 def simulate(game: GameJson):
