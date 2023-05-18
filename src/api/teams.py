@@ -112,12 +112,12 @@ def list_teams(
     """
     This endpoint returns a list of teams in 2022. For each team it returns:
 
-team_id: The internal id of the team. Can be used to query the /teams/{team_id} endpoint.
-created_by: The user who created the team. Is null for real-life teams.
-team_city: The city the team is located in. Can be null for fictional teams.
-team_name: The name of the team.
-You can filter for teams whose name contains a string by using the name or created by by using the created_by
-query parameters, as well as real=True for only real-life teams.
+    * `team_id`: The internal id of the team. Can be used to query the /teams/{team_id} endpoint.
+    * `created_by`: The user who created the team. Is null for real-life teams.
+    * `team_city`: The city the team is located in. Can be null for fictional teams.
+    * `team_name`: The name of the team.
+    * You can filter for teams whose name contains a string by using the name or created by by using the created_by
+    * query parameters, as well as real=True for only real-life teams.
     """
 
     if sort is team_sort_options.team_name:

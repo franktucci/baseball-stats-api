@@ -4,3 +4,4 @@ test
 .ruff_cache
 .vscode
 .git
+.pdf
