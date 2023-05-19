@@ -24,6 +24,17 @@ class EventCodes(Enum):
     STOLEN = 9
     CAUGHT_STEALING = 10
 
+def calculate_hits(row):
+    return row.single_count + row.double_count + row.triple_count + row.hr_count
+def calculate_at_bats(row):
+    return calculate_hits(row) + row.walk_count + row.strike_out_count + row.hit_by_pitch_count + row.sac_fly_count + row.other_out_count
+def calculate_obp(row):
+    numerator = calculate_hits(row) + row.walk_count + row.hit_by_pitch_count
+    denominator = calculate_at_bats(row) + row.walk_count + row.hit_by_pitch_count + row.sac_fly_count
+    return 0.0 if denominator == 0 else round(numerator / denominator, 3)
+def calculate_avg(row):
+    return 0.0 if calculate_at_bats(row) == 0 else round(calculate_hits(row) / calculate_at_bats(row), 3)
+
 @router.get("/players/{player_id}", tags=["players"])
 def get_player(player_id: int):
     """
@@ -49,9 +60,6 @@ def get_player(player_id: int):
     * `caught_stealing`: The number of times a runner gets out in the process of stealing a base.
     * `on_base_percent`: Calculated (Hit + Ball + HBP) / (At-Bat + Walk + HBP + Sacrifice-Fly)
     * `batting_average`: Calculated Hit / At-bat
-
-    You can filter for players whose name contains a string by using the
-    `name` or created by using the `created_by` query parameters, as well as real=True for only real teams, or team={team_id} for a specific team.
     """
 
     stmt = (
@@ -61,9 +69,23 @@ def get_player(player_id: int):
             db.players.c.last_name,
             db.players.c.team_id,
             db.players.c.created_by,
-            db.players.c.position
+            db.players.c.position,
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SINGLE.value).label('single_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.DOUBLE.value).label('double_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.TRIPLE.value).label('triple_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HR.value).label('hr_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.WALK.value).label('walk_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STRIKE_OUT.value).label('strike_out_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HIT_PITCH.value).label('hit_by_pitch_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SAC_FLY.value).label('sac_fly_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.OTHER_OUT.value).label('other_out_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STOLEN.value).label('stolen_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.CAUGHT_STEALING.value).label('caught_stealing_count')
         )
+        .select_from(db.players.join(db.events, db.events.c.player_id == db.players.c.player_id))
+        .group_by(db.players.c.player_id)
         .where(db.players.c.player_id == player_id)
+
     )
     with db.engine.connect() as conn:
         players_result = conn.execute(stmt)
@@ -73,52 +95,25 @@ def get_player(player_id: int):
     if player is None:
          raise HTTPException(status_code=404, detail="player not found.")
 
-    stmt = (
-        sqlalchemy.select(
-            db.events.c.enum,
-            sqlalchemy.func.count()
-        )
-        .where(db.events.c.player_id == player_id)
-        .group_by(db.events.c.enum)
-    )
-    with db.engine.connect() as conn:
-        events_result = conn.execute(stmt)
-
-    events = {}
-
-    for row in events_result:
-        events[row[0]] = row[1]
-
-    singles = events.get(EventCodes.SINGLE.value) or 0
-    doubles = events.get(EventCodes.DOUBLE.value) or 0
-    triples = events.get(EventCodes.TRIPLE.value) or 0
-    hrs = events.get(EventCodes.HR.value) or 0
-    walks = events.get(EventCodes.WALK.value) or 0
-    strike_outs = events.get(EventCodes.STRIKE_OUT.value) or 0
-    hit_bys = events.get(EventCodes.HIT_PITCH.value) or 0
-    sac_flies = events.get(EventCodes.SAC_FLY.value) or 0
-    other_outs = events.get(EventCodes.OTHER_OUT.value) or 0
-    stolen = events.get(EventCodes.STOLEN.value) or 0
-    caught_stealing = events.get(EventCodes.CAUGHT_STEALING.value) or 0
-    hits = singles + doubles + triples + hrs
-    at_bats = hits + walks + strike_outs + hit_bys + sac_flies + other_outs
 
     return {
         'player_id': player_id,
         'player_name': player.first_name + " " + player.last_name,
+        'created_by': player.created_by,
+        'team_id': player.team_id,
         'positions': player.position,
-        'at_bat': at_bats,
-        'singles': singles,
-        'doubles': doubles,
-        'home_runs': hrs,
-        'walks': walks,
-        'strike_outs': strike_outs,
-        'hit_by_pitch': hit_bys,
-        'sacrifice_flies': sac_flies,
-        'stolen_bases': stolen,
-        'caught_stealing': caught_stealing,
-        'on_base_percent': 0.0 if (at_bats + walks + hit_bys + sac_flies) == 0 else round((hits + walks + hit_bys) / (at_bats + walks + hit_bys + sac_flies), 3),
-        'batting_average': 0.0 if at_bats == 0 else round(hits / at_bats, 3)
+        'at_bat': calculate_at_bats(player),
+        'singles': player.single_count,
+        'doubles': player.double_count,
+        'home_runs': player.hr_count,
+        'walks': player.walk_count,
+        'strike_outs': player.strike_out_count,
+        'hit_by_pitch': player.hit_by_pitch_count,
+        'sacrifice_flies': player.sac_fly_count,
+        'stolen_bases': player.stolen_count,
+        'caught_stealing': player.caught_stealing_count,
+        'on_base_percent': calculate_obp(player),
+        'batting_average': calculate_avg(player)
     }
 
 class PlayerJson(BaseModel):
@@ -166,10 +161,7 @@ def add_player(player: PlayerJson):
     return {'player_id': player_id}
 
 class players_sort_options(str, Enum):
-    player_name = "first_name"
-    # team
-    # obp
-    # avg
+    player_name = "name"
 
 # Add get parameters
 @router.get("/players/", tags=["players"])
@@ -187,22 +179,18 @@ def list_players(
     * `player_id`: The internal id of the player. Can be used to query the
       `/players/{player_id}` endpoint.
     * `player_name`: The name of the player.
+    * `team_name`: The team name of the player.
     * `created_by`: The user who created the team. Is null for real-life teams.
-    * `positions`: A list of position_ids that the player is able to play.
-    * `at_bat`: The number of times a player has been up to bat, total.
-    * `runs`: The number of runs scored by the player.
-    * `hits`: The number of times the ball is hit and the batter gets to at least first base.
-    * `doubles`: The number of times the ball is hit and grants the batter 2 bases.
-    * `triples`: The number of times the ball is hit and grants the batter 3 bases.
-    * `home_runs`: The number of times the batter hits a home run.
-    * `walks`: The number of times the batter walks. This grants the batter one base.
-    * `strike_outs`: The number of times the batter strikes out.
-    * `hit_by_pitch`: The number of times the batter is hit by the pitch. This grants the batter one base.
-    * `sacrifice_flies`: The number of times the batter hits a fly ball that is caught out with less than two outs and, in the process, assists in a run.
-    * `stolen_bases`: The number of times a runner successfully has stolen a base.
-    * `caught_stealing`: The number of times a runner gets out in the process of stealing a base.
+    * `positions`: A string representing the positions the player can play.
+    * `at_bats`: The number of times a player has been up to bat.
     * `on_base_percent`: Calculated (Hit + Ball + HBP) / (At-Bat + Walk + HBP + Sacrifice-Fly)
     * `batting_average`: Calculated Hit / At-bat
+
+    You can filter for players whose name contains a string by using the
+    `name`, `team`, and/or `created_by` query parameters.
+
+    You can sort the results by using the `sort` query parameter:
+    * `name` - Sort by first name alphabetically.
     """
 
     if sort is players_sort_options.player_name:
@@ -213,13 +201,27 @@ def list_players(
     stmt = (
         sqlalchemy.select(
             db.players.c.player_id,
-            db.players.c.player_name,
-            db.events.c.enum,
+            db.players.c.first_name,
+            db.players.c.last_name,
             db.teams.c.team_name,
+            db.players.c.created_by,
+            db.players.c.position,
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SINGLE.value).label('single_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.DOUBLE.value).label('double_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.TRIPLE.value).label('triple_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HR.value).label('hr_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.WALK.value).label('walk_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STRIKE_OUT.value).label('strike_out_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HIT_PITCH.value).label('hit_by_pitch_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SAC_FLY.value).label('sac_fly_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.OTHER_OUT.value).label('other_out_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STOLEN.value).label('stolen_count'),
+            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.CAUGHT_STEALING.value).label('caught_stealing_count')
         )
+        .select_from(db.players.join(db.teams, db.players.c.team_id == db.teams.c.team_id).join(db.events, db.events.c.player_id == db.players.c.player_id))
         .limit(limit)
         .offset(offset)
-        .join()
+        .group_by(db.players.c.player_id, db.teams.c.team_name)
         .order_by(order_by, db.players.c.player_id)
     )
 
@@ -228,8 +230,8 @@ def list_players(
         stmt = stmt.where(db.players.c.first_name.ilike(f"%{name}%"))
     if created != "":
         stmt = stmt.where(db.players.c.created_by.ilike(f"%{created}%"))
-    if created != "":
-        stmt = stmt.where(db.players.c.first_name.ilike(f"%{created}%"))
+    if team != "":
+        stmt = stmt.where(db.teams.c.team_name.ilike(f"%{team}%"))
 
     with db.engine.connect() as conn:
         result = conn.execute(stmt)
@@ -238,7 +240,13 @@ def list_players(
             json.append(
                 {
                     'player_id': row.player_id,
-                    'player_name': row.first_name + " " + row.last_name
+                    'player_name': row.first_name + " " + row.last_name,
+                    'team_name': row.team_name,
+                    'created_by': row.created_by,
+                    'positions': row.position,
+                    'at_bats': calculate_at_bats(row),
+                    'on_base_percent': calculate_obp(row),
+                    'batting_average': calculate_avg(row)
                 }
             )
 
