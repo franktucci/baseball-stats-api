@@ -43,7 +43,7 @@ app = FastAPI(
     },
     openapi_tags=tags_metadata,
 )
-# app.include_router(events.router)
+
 app.include_router(games.router)
 app.include_router(players.router)
 app.include_router(teams.router)
