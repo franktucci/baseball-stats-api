@@ -106,7 +106,7 @@ def simulate_outs(outs: int):
             bat_order = home_bat_order if BT == 0 else away_bat_order
             lineup = game.lineup1.lineup if BT == 0 else game.lineup2.lineup
 
-def simulate_at_bat():
+def simulate_at_bat(batter: str, strikes: int, walks: int):
     # input: batter, strikes, walks
     # ouput: get a strike, get a walk, get on base, get
     # half_of_inning:
