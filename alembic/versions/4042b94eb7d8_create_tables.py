@@ -20,7 +20,7 @@ def upgrade() -> None:
     op.create_table(
         'event_enums',
         sa.Column('enum', sa.Integer, primary_key=True),
-        sa.Column('string', sa.text, nullable=False),
+        sa.Column('string', sa.Text, nullable=False),
     )
     op.create_table(
         'events',
@@ -34,7 +34,7 @@ def upgrade() -> None:
     op.create_table(
         'games',
         sa.Column('game_id', sa.Integer, primary_key=True),
-        sa.Column('created_by', sa.text, nullable=True),
+        sa.Column('created_by', sa.Text, nullable=True),
         sa.Column('home_team_id', sa.Integer, nullable=False),
         sa.Column('away_team_id', sa.Integer, nullable=False),
         sa.Column('home_score', sa.Integer, nullable=False),
@@ -43,23 +43,23 @@ def upgrade() -> None:
     op.create_table(
         'players',
         sa.Column('player_id', sa.Integer, primary_key=True),
-        sa.Column('created_by', sa.text, nullable=True),
+        sa.Column('created_by', sa.Text, nullable=True),
         sa.Column('team_id', sa.Integer, nullable=False),
-        sa.Column('first_name', sa.text, nullable=False),
-        sa.Column('last_name', sa.text, nullable=False),
-        sa.Column('position', sa.text, nullable=False),
+        sa.Column('first_name', sa.Text, nullable=False),
+        sa.Column('last_name', sa.Text, nullable=False),
+        sa.Column('position', sa.Text, nullable=False),
     )
     op.create_table(
-        'event_enums',
+        'teams',
         sa.Column('team_id', sa.Integer, primary_key=True),
-        sa.Column('created_by', sa.text, nullable=True),
-        sa.Column('team_city', sa.text, nullable=True),
-        sa.Column('team_name', sa.text, nullable=False),
+        sa.Column('created_by', sa.Text, nullable=True),
+        sa.Column('team_city', sa.Text, nullable=True),
+        sa.Column('team_name', sa.Text, nullable=False),
     )
     op.create_table(
-        'event_enums',
-        sa.Column('username', sa.text, primary_key=True),
-        sa.Column('password_hash', sa.text, nullable=False)
+        'users',
+        sa.Column('username', sa.Text, primary_key=True),
+        sa.Column('password_hash', sa.Text, nullable=False)
     )
 
 def downgrade() -> None:
