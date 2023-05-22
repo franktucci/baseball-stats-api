@@ -9,6 +9,7 @@ import sqlalchemy
 from pydantic import BaseModel
 from typing import List
 import random
+from Crypto.Hash import SHA256
 
 router = APIRouter()
 
@@ -210,6 +211,7 @@ class LineupJson(BaseModel):
 
 class GameJson(BaseModel):
     created_by: str
+    password: str
     lineup1: LineupJson
     lineup2: LineupJson
 
@@ -232,6 +234,29 @@ def simulate(game: GameJson):
     * `player`: Player name of batter.
     * `happening`: What the player did. Some examples include Walk, Strikeout, Home Run, etc.
     """
+
+    if game.created_by is None:
+        raise HTTPException(status_code=422, detail="must specify a username.")
+
+    stmt = (
+        sqlalchemy.select(
+            db.users.c.username,
+            db.users.c.password_hash
+        )
+        .where(db.users.c.username == game.created_by)
+    )
+
+    with db.engine.connect() as conn:
+        user_result = conn.execute(stmt)
+
+    user = user_result.first()
+    if user is None:
+        raise HTTPException(status_code=422, detail="user is not registered. Register at /users/.")
+
+    d = SHA256.new()
+    d.update(bytes(game.password, 'utf8'))
+    if d.hexdigest() != user.password_hash:
+        raise HTTPException(status_code=422, detail="incorrect password.")
 
     if len(game.lineup1.lineup) != 10 or len(game.lineup2.lineup) != 10:
         raise HTTPException(status_code=422, detail="Endpoint was not given 10 players.")

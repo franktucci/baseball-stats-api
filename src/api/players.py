@@ -8,6 +8,7 @@ import dotenv
 import sqlalchemy
 from pydantic import BaseModel
 from typing import List
+from Crypto.Hash import SHA256
 
 router = APIRouter()
 
@@ -121,6 +122,7 @@ class PlayerJson(BaseModel):
     last_name: str
     team_id: int
     created_by: str
+    password: str
     position: str
 
 @router.post("/players/", tags=["players"])
@@ -131,8 +133,29 @@ def add_player(player: PlayerJson):
 
     The endpoint returns the id of the resulting player that was created.
     """
+
     if player.created_by is None:
-        raise HTTPException(status_code=422, detail="must specify a player creator.")
+        raise HTTPException(status_code=422, detail="must specify a username.")
+
+    stmt = (
+        sqlalchemy.select(
+            db.users.c.username,
+            db.users.c.password_hash
+        )
+        .where(db.users.c.username == player.created_by)
+    )
+
+    with db.engine.connect() as conn:
+        user_result = conn.execute(stmt)
+
+    user = user_result.first()
+    if user is None:
+        raise HTTPException(status_code=422, detail="user is not registered. Register at /users/.")
+
+    d = SHA256.new()
+    d.update(bytes(player.password, 'utf8'))
+    if d.hexdigest() != user.password_hash:
+        raise HTTPException(status_code=422, detail="incorrect password.")
 
     stmt = (
         sqlalchemy.select(

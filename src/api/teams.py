@@ -9,6 +9,7 @@ import sqlalchemy
 import dotenv
 from pydantic import BaseModel
 from typing import List
+from Crypto.Hash import SHA256
 
 router = APIRouter()
 
@@ -71,17 +72,41 @@ class team_sort_options(str, Enum):
 
 class TeamJson(BaseModel):
     created_by: str
+    password: str
     team_city: str
     team_name: str
 
 @router.post("/teams/", tags=["teams"])
 def add_team(team: TeamJson):
     """
-    This endpoint adds user-created team roster.
-    This endpoint must take a non-null value for the created_by section as it cannot overwrite a real-life team. Accepts a team object:
+    This endpoint adds a team. The team is represented
+    by a name, city, and created_by.
+
+    The endpoint returns the id of the resulting team that was created.
     """
+
     if team.created_by is None:
-        raise HTTPException(status_code=422, detail="must specify a team creator.")
+        raise HTTPException(status_code=422, detail="must specify a username.")
+
+    stmt = (
+        sqlalchemy.select(
+            db.users.c.username,
+            db.users.c.password_hash
+        )
+        .where(db.users.c.username == team.created_by)
+    )
+
+    with db.engine.connect() as conn:
+        user_result = conn.execute(stmt)
+
+    user = user_result.first()
+    if user is None:
+        raise HTTPException(status_code=422, detail="user is not registered. Register at /users/.")
+
+    d = SHA256.new()
+    d.update(bytes(team.password, 'utf8'))
+    if d.hexdigest() != user.password_hash:
+        raise HTTPException(status_code=422, detail="incorrect password.")
 
     stmt = (sqlalchemy.select(db.teams.c.team_id).order_by(sqlalchemy.desc('team_id')))
 
