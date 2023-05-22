@@ -141,7 +141,7 @@ def simulate_event(inning, half, player, bases):
         walk_prp = hr_prp + (player.walk_count / at_bats)
         strike_out_prp = walk_prp + (player.strike_out_count / at_bats)
         hit_by_prp = strike_out_prp + (player.hit_by_pitch_count / at_bats)
-        sac_fly_prp = hit_by_prp + (player.hit_by_pitch_count / at_bats)
+        sac_fly_prp = hit_by_prp + (player.sac_fly_count / at_bats)
         other_prp = 1
 
     rand = random.random()
