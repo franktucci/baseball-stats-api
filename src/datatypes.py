@@ -7,25 +7,25 @@ class Player:
     team_id: int
     first_name: str
     last_name: str
-    position: str  # This will be a separate table in the near future!
+    position: str
 
 @dataclass
 class Game:
     game_id: int
     created_by: str
-    home_team_id: int
-    away_team_id: int
     home_score: str
     away_score: str
+    home_team_id: int
+    away_team_id: int
 
 @dataclass
 class Event:
     event_id: int
-    game_id: int
-    player_id: int
     inning: int
-    BT: int
+    game_id: int
     enum: int
+    player_id: int
+    BT: int
 
 @dataclass
 class Team:
@@ -33,3 +33,13 @@ class Team:
     created_by: str
     team_city: str
     team_name: str
+
+@dataclass
+class User:
+    username: str
+    password_hash: str
+
+@dataclass
+class EventEnum:
+    enum: int
+    string: str

@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api import players, teams, games, pkg_util
+from src.api import players, teams, games, users, pkg_util
 
 description = """
 Baseball API. TBA
@@ -30,6 +30,10 @@ tags_metadata = [
     {
         "name": "games",
         "description": "Play a simulated game."
+    },
+    {
+        "name": "users",
+        "description": "Add a user."
     }
 ]
 
@@ -47,6 +51,7 @@ app = FastAPI(
 app.include_router(games.router)
 app.include_router(players.router)
 app.include_router(teams.router)
+app.include_router(users.router)
 app.include_router(pkg_util.router)
 
 @app.get("/")

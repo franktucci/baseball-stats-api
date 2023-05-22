@@ -125,6 +125,12 @@ class PlayerJson(BaseModel):
 
 @router.post("/players/", tags=["players"])
 def add_player(player: PlayerJson):
+    """
+    This endpoint adds a player. The player is represented
+    by a first_name, last_name, team_id, created_by, and position.
+
+    The endpoint returns the id of the resulting player that was created.
+    """
     if player.created_by is None:
         raise HTTPException(status_code=422, detail="must specify a player creator.")
 
