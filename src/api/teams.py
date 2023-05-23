@@ -68,19 +68,18 @@ def get_team(team_id: int):
 
 class team_sort_options(str, Enum):
     team_name = "team_name"
-    created_by = "created_by"
+    team_id = "team_id"
 
 class TeamJson(BaseModel):
-    created_by: str
-    password: str
     team_city: str
     team_name: str
+    created_by: str
+    password: str
 
 @router.post("/teams/", tags=["teams"])
 def add_team(team: TeamJson):
     """
-    This endpoint adds a team. The team is represented
-    by a name, city, and created_by.
+    This endpoint takes in a `team_name`, `team_city`, `created_by`, and `password`.
 
     The endpoint returns the id of the resulting team that was created.
     """
@@ -130,27 +129,30 @@ def add_team(team: TeamJson):
 @router.get("/teams/", tags=["teams"])
 def list_teams(
     name: str = "",
+    created: str = "",
     limit: int = Query(50, ge=1, le=250),
     offset: int = Query(0, ge=0),
     sort: team_sort_options = team_sort_options.team_name,
 ):
     """
-    This endpoint returns a list of teams in 2022. For each team it returns:
+    This endpoint returns a list of teams. For each team it returns:
 
     * `team_id`: The internal id of the team. Can be used to query the /teams/{team_id} endpoint.
     * `created_by`: The user who created the team. Is null for real-life teams.
     * `team_city`: The city the team is located in. Can be null for fictional teams.
     * `team_name`: The name of the team.
-    * You can filter for teams whose name contains a string by using the name or created by by using the created_by
-    * query parameters, as well as real=True for only real-life teams.
+    * You can filter for teams whose name contains a string by using the name or created by by using the
+    `name` and/or `created` query parameters.
+
+    You can sort the results by using the `sort` query parameter:
+    * `id` - Sort by team_id.
+    * `name` - Sort by team name alphabetically.
     """
 
     if sort is team_sort_options.team_name:
         order_by = db.teams.c.team_name
-    elif sort is team_sort_options.created_by:
-        order_by = db.teams.c.created_by
     else:
-        assert False
+        order_by = db.teams.c.team_id
 
     stmt = (
         sqlalchemy.select(
@@ -164,9 +166,10 @@ def list_teams(
         .order_by(order_by, db.teams.c.team_id)
     )
 
-    # filter only if name parameter is passed
     if name != "":
         stmt = stmt.where(db.teams.c.team_name.ilike(f"%{name}%"))
+    if created != "":
+        stmt = stmt.where(db.teams.c.created_by.ilike(f"%{created}%"))
 
     with db.engine.connect() as conn:
         result = conn.execute(stmt)
@@ -182,35 +185,3 @@ def list_teams(
             )
 
     return json
-
-# @router.delete("/teams/{team_id}", tags=["teams"])
-# def delete_team(team_id: int):
-#     """
-#     This endpoint deletes the specified team by team_id. Will not delete a real-life team.
-#     """
-#
-#     stmt = (
-#         sqlalchemy.select(
-#             db.movies.c.movie_id,
-#             db.movies.c.title,
-#             db.characters.c.name,
-#         )
-#         .select_from(db.movies)
-#         .join(db.characters)
-#         .join(db.lines)
-#         .where(db.movies.c.movie_id==team_id)
-#     )
-#
-#     with db.engine.connect() as conn:
-#         result = conn.execute(stmt)
-#         json = []
-#         for row in result:
-#             json.append(
-#                 {
-#                     # "movie_id": row.movie_id,
-#                     # "movie_title": row.title,
-#                     # "name": row.name,
-#                 }
-#             )
-#
-#     return json

@@ -129,8 +129,8 @@ class PlayerJson(BaseModel):
 @router.post("/players/", tags=["players"])
 def add_player(player: PlayerJson):
     """
-    This endpoint adds a player. The player is represented
-    by a first_name, last_name, team_id, created_by, and position.
+    This endpoint takes in a `first_name`, `last_name`, `team_id`, `created_by`,
+    `password`, and `position`.
 
     The endpoint returns the id of the resulting player that was created.
     """
@@ -191,6 +191,7 @@ def add_player(player: PlayerJson):
     return {'player_id': player_id}
 
 class players_sort_options(str, Enum):
+    player_id = "id"
     player_name = "name"
 
 # Add get parameters
@@ -201,7 +202,7 @@ def list_players(
     team: str = "",
     limit: int = Query(50, ge=1, le=250),
     offset: int = Query(0, ge=0),
-    sort: players_sort_options = players_sort_options.player_name,
+    sort: players_sort_options = players_sort_options.player_id,
 ):
     """
     This endpoint returns a list of players in 2022. For each player it returns:
@@ -217,16 +218,17 @@ def list_players(
     * `batting_average`: Calculated Hit / At-bat
 
     You can filter for players whose name contains a string by using the
-    `name`, `team`, and/or `created_by` query parameters.
+    `name`, `team`, and/or `created` query parameters.
 
     You can sort the results by using the `sort` query parameter:
+    * `id` - Sort by player_id.
     * `name` - Sort by first name alphabetically.
     """
 
     if sort is players_sort_options.player_name:
         order_by = db.players.c.first_name
     else:
-        assert False
+        order_by = db.players.c.player_id
 
     stmt = (
         sqlalchemy.select(
