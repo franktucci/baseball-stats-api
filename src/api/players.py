@@ -83,7 +83,7 @@ def get_player(player_id: int):
             sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STOLEN.value).label('stolen_count'),
             sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.CAUGHT_STEALING.value).label('caught_stealing_count')
         )
-        .select_from(db.players.join(db.events, db.events.c.player_id == db.players.c.player_id))
+        .select_from(db.players.join(db.events, db.events.c.player_id == db.players.c.player_id, isouter=True))
         .group_by(db.players.c.player_id)
         .where(db.players.c.player_id == player_id)
 
@@ -106,6 +106,7 @@ def get_player(player_id: int):
         'at_bat': calculate_at_bats(player),
         'singles': player.single_count,
         'doubles': player.double_count,
+        'triples': player.double_count,
         'home_runs': player.hr_count,
         'walks': player.walk_count,
         'strike_outs': player.strike_out_count,
@@ -247,7 +248,7 @@ def list_players(
             sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STOLEN.value).label('stolen_count'),
             sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.CAUGHT_STEALING.value).label('caught_stealing_count')
         )
-        .select_from(db.players.join(db.teams, db.players.c.team_id == db.teams.c.team_id).join(db.events, db.events.c.player_id == db.players.c.player_id))
+        .select_from(db.players.join(db.events, db.events.c.player_id == db.players.c.player_id, isouter=True).join(db.teams, db.players.c.team_id == db.teams.c.team_id, isouter=True))
         .limit(limit)
         .offset(offset)
         .group_by(db.players.c.player_id, db.teams.c.team_name)

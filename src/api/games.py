@@ -313,12 +313,18 @@ def simulate(game: GameJson):
     stmt = (sqlalchemy.select(db.games.c.game_id).order_by(sqlalchemy.desc('game_id')))
     with db.engine.connect() as conn:
         game_result = conn.execute(stmt)
-    game_id = game_result.first().game_id + 1
+    if game_result.first() is None:
+        game_id = 1
+    else:
+        game_id = game_result.first().game_id + 1
 
     stmt = (sqlalchemy.select(db.events.c.event_id).order_by(sqlalchemy.desc('event_id')))
     with db.engine.connect() as conn:
         event_result = conn.execute(stmt)
-    event_id = event_result.first().event_id + 1
+    if event_result.first() is None:
+        event_id = 1
+    else:
+        event_id = event_result.first().event_id + 1
 
     with db.engine.begin() as conn:
         conn.execute(
