@@ -218,15 +218,16 @@ class GameJson(BaseModel):
 @router.post("/games/", tags=["games"])
 def simulate(game: GameJson):
     """
-    This endpoint takes in `created by` and two lineup objects and returns a simulated game object. A lineup consists of:
+    This endpoint takes in `created by`, `password`, and two lineup objects. A lineup consists of:
     * `team_id`: The internal id of the team. Can be used to query the `/view_roster/{team_id}` endpoint.
     * `lineup`: A list of exactly 10 player_ids (0 is the designated hitter, 1-9 are in batting order).
 
-    This endpoint returns a game object. This game object calculates a random game based on a player’s given stats. This consists of:
+    This endpoint returns a simulated game object. This game object calculates a random game based on a
+    player’s given stats. This consists of:
     * `game_id`: The game id.
-    * `loser`: The team id of the losing team.
-    * `score`: The ending score of the game.
-    * `play_by_play`: A list of event objects that occurred in the game.
+    * `home_score`: The final score of the home team.
+    * `away_score`: The final score of the away team.
+    * `events`: A list of event objects that occurred in the game.
 
     Each event is represented by a dictionary with the following keys:
     * `inning`: The inning of the game.
@@ -313,18 +314,22 @@ def simulate(game: GameJson):
     stmt = (sqlalchemy.select(db.games.c.game_id).order_by(sqlalchemy.desc('game_id')))
     with db.engine.connect() as conn:
         game_result = conn.execute(stmt)
-    if game_result.first() is None:
+
+    game_id_game = game_result.first()
+    if game_id_game is None:
         game_id = 1
     else:
-        game_id = game_result.first().game_id + 1
+        game_id = game_id_game.game_id + 1
 
     stmt = (sqlalchemy.select(db.events.c.event_id).order_by(sqlalchemy.desc('event_id')))
     with db.engine.connect() as conn:
         event_result = conn.execute(stmt)
-    if event_result.first() is None:
+
+    event_id_event = event_result.first()
+    if event_id_event is None:
         event_id = 1
     else:
-        event_id = event_result.first().event_id + 1
+        event_id = event_id_event.event_id + 1
 
     with db.engine.begin() as conn:
         conn.execute(
@@ -349,4 +354,37 @@ def simulate(game: GameJson):
                 )
             )
             event_id += 1
-    return {'game_id': game_id}
+
+    stmt = (
+        sqlalchemy.select(
+            db.events.c.inning,
+            db.events.c.BT,
+            db.players.c.first_name,
+            db.players.c.last_name,
+            db.event_enums.c.string
+        )
+        .select_from(db.events.join(db.players, db.events.c.player_id == db.players.c.player_id).join(db.event_enums, db.events.c.enum == db.event_enums.c.enum))
+        .where(db.events.c.game_id == game_id)
+    )
+
+    with db.engine.connect() as conn:
+        events_result = conn.execute(stmt)
+
+    events = []
+
+    for event in events_result:
+        events.append(
+            {
+                'inning': event.inning,
+                'T/B': event.BT,
+                'player': event.first_name + " " + event.last_name,
+                'happening': event.string
+            }
+        )
+
+    return {
+        'game_id': game_id,
+        'home_score': home_score,
+        'away_score': away_score,
+        'events': events
+    }
