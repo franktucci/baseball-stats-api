@@ -25,39 +25,18 @@ The API backend will service a website where it will be accessible to a user wit
 ---
 ### Endpoints:
 
-GET teams/
+GET /players/{player_id}
 
-This endpoint returns a list of teams in 2022. For each team it returns:
-
-* `team_id`: The internal id of the team. Can be used to query the
-  `/teams/{team_id}` endpoint.
-* `created_by`: The user who created the team. Is null for real-life teams.
-* `team_city`: The city the team is located in. Can be null for fictional teams.
-* `team_name`: The name of the team.
-
-You can filter for teams whose name contains a string by using the
-`name` or created by by using the `created_by` query parameters, as well as real=True for only real-life teams.
-
-GET teams/{team_id}
-
-This endpoint returns a team's information in 2022. It returns:
-* `created_by`: The user who created the team. Is null for real-life teams.
-* `team_city`: The city the team is located in. Can be null for virtual teams.
-* `team_name`: The name of the team.
-* `players`: A list of the team's player_id's. Technically, a user-created team could have no players.
-
-GET players/
-
-This endpoint returns a list of players in 2022. For each player it returns:
-
+This endpoint returns a player's stats for 2022.
 * `player_id`: The internal id of the player. Can be used to query the
   `/players/{player_id}` endpoint.
 * `player_name`: The name of the player.
 * `created_by`: The user who created the team. Is null for real-life teams.
-* `positions`: A list of position_ids that the player is able to play.
+* `team_id`: The internal id of the team the player plays on. Can be used to query the
+  `/teams/{team_id}` endpoint.
+* `positions`: A string representation of the positions a character can play.
 * `at_bat`: The number of times a player has been up to bat, total.
-* `runs`: The number of runs scored by the player.
-* `hits`: The number of times the ball is hit and the batter gets to at least first base.
+* `singles`: The number of times the ball is hit and the batter gets to first base.
 * `doubles`: The number of times the ball is hit and grants the batter 2 bases.
 * `triples`: The number of times the ball is hit and grants the batter 3 bases.
 * `home_runs`: The number of times the batter hits a home run.
@@ -70,47 +49,89 @@ This endpoint returns a list of players in 2022. For each player it returns:
 * `on_base_percent`: Calculated (Hit + Ball + HBP) / (At-Bat + Walk + HBP + Sacrifice-Fly)
 * `batting_average`: Calculated Hit / At-bat
 
-GET players/{player_id}
+POST /players/
 
-This endpoint returns a player's stats for 2022.
+This endpoint takes in a `first_name`, `last_name`, `team_id`, `created_by`,
+`password`, and `position`.
+
+The endpoint returns the id of the resulting player that was created.
+
+GET /players/
+
+This endpoint returns a list of players in 2022. For each player it returns:
 * `player_id`: The internal id of the player. Can be used to query the
-  `/view_player/{player_id}` endpoint.
+  `/players/{player_id}` endpoint.
 * `player_name`: The name of the player.
+* `team_name`: The team name of the player.
 * `created_by`: The user who created the team. Is null for real-life teams.
-* `positions`: A list of position_ids that the player is able to play.
-* `at_bat`: The number of times a player has been up to bat, total.
-* `runs`: The number of runs scored by the player.
-* `hits`: The number of times the ball is hit and the batter gets to at least first base.
-* `doubles`: The number of times the ball is hit and grants the batter 2 bases.
-* `triples`: The number of times the ball is hit and grants the batter 3 bases.
-* `home_runs`: The number of times the batter hits a home run.
-* `walks`: The number of times the batter walks. This grants the batter one base.
-* `strike_outs`: The number of times the batter strikes out.
-* `hit_by_pitch`: The number of times the batter is hit by the pitch. This grants the batter one base.
-* `sacrifice_flies`: The number of times the batter hits a fly ball that is caught out with less than two outs and, in the process, assists in a run.
-* `stolen_bases`: The number of times a runner successfully has stolen a base.
-* `caught_stealing`: The number of times a runner gets out in the process of stealing a base.
+* `positions`: A string representing the positions the player can play.
+* `at_bats`: The number of times a player has been up to bat.
 * `on_base_percent`: Calculated (Hit + Ball + HBP) / (At-Bat + Walk + HBP + Sacrifice-Fly)
 * `batting_average`: Calculated Hit / At-bat
 
 You can filter for players whose name contains a string by using the
-`name` or created by by using the `created_by` query parameters, as well as real=True for only real teams, or team={team_id} for a specific team.
+`name`, `team`, and/or `created` query parameters.
 
-POST simulated-game/
+You can sort the results by using the `sort` query parameter:
+* `id` - Sort by player_id.
+* `name` - Sort by first name alphabetically.
 
-This endpoint takes in two lineup objects and returns a simulated game object. A lineup consists of:
+GET /teams/{team_id}
+
+This endpoint returns a team's information in 2022. It returns:
+* `team_id`: The internal id of the team. Can be used to query the
+  `/teams/{team_id}` endpoint.
+* `created_by`: The user who created the team. Is null for real-life teams.
+* `team_city`: The city the team is located in. Can be null for virtual teams.
+* `team_name`: The name of the team.
+* `players`: A list of the team's player_id's. Can be used to query the
+  `/players/{player_id}` endpoint.
+
+POST /teams/
+
+This endpoint takes in a `team_name`, `team_city`, `created_by`, and `password`.
+
+The endpoint returns the id of the resulting team that was created.
+
+GET /teams/
+
+This endpoint returns a list of teams. For each team it returns:
+
+* `team_id`: The internal id of the team. Can be used to query the /teams/{team_id} endpoint.
+* `created_by`: The user who created the team. Is null for real-life teams.
+* `team_city`: The city the team is located in. Can be null for fictional teams.
+* `team_name`: The name of the team.
+
+You can filter for teams whose name contains a string by using the name or created by by using the
+`name` and/or `created` query parameters.
+
+You can sort the results by using the `sort` query parameter:
+* `id` - Sort by team_id.
+* `name` - Sort by team name alphabetically.
+
+GET /games/{game_id}
+
+This endpoint returns a game in 2022. It returns:
+* `game_id`: The internal id of the team. Can be used to query the
+  `/games/{game_id}` endpoint.
+* `created_by`: The user who created the team. Is null for real-life games.
+* `home_team_id`: The id of the home team. Can be used to query the `/teams/{team_id}` endpoint.
+* `away_team_id`: The id of the away team. Can be used to query the `/teams/{team_id}` endpoint.
+* `home_score`: The score of the home team.
+* `away_score`: The score of the away team.
+
+POST /game/
+
+This endpoint takes in `created by`, `password`, and two lineup objects. A lineup consists of:
 * `team_id`: The internal id of the team. Can be used to query the `/view_roster/{team_id}` endpoint.
-* `lineup`: A list of exactly 10 players (9 field positions, and a designated hitter).
+* `lineup`: A list of exactly 10 player_ids (0 is the designated hitter, 1-9 are in batting order).
 
-Each player is represented by a dictionary with the following keys:
-* `player_id`: the internal id of the player.
-* `order`: The number of the player in the batting order. '0' is reserved for the pitcher, who does not bat.
-
-This endpoint returns a game object. This game object calculates a random game based on a player’s given stats. This consists of:
-* `winner`: The team id of the winning team.
-* `loser`: The team id of the losing team.
-* `score`: The ending score of the game.
-* `play_by_play`: A list of event objects that occurred in the game.
+This endpoint returns a simulated game object. This game object calculates a random game based on a
+player’s given stats. This consists of:
+* `game_id`: The game id.
+* `home_score`: The final score of the home team.
+* `away_score`: The final score of the away team.
+* `events`: A list of event objects that occurred in the game.
 
 Each event is represented by a dictionary with the following keys:
 * `inning`: The inning of the game.
@@ -118,46 +139,14 @@ Each event is represented by a dictionary with the following keys:
 * `player`: Player name of batter.
 * `happening`: What the player did. Some examples include Walk, Strikeout, Home Run, etc.
 
-PUT teams/{team_id}
+POST /users/
 
-This endpoint adds a team roster if the id does not exist, otherwise overwrites an existing team if the team_id is the same. This endpoint must take a non-null value for the `created_by` section as it cannot overwrite a real-life team. Accepts a team object:
-* `team_id`: The internal id of the team. Can be used to query the
-  `/teams/{team_id}` endpoint.
-* `created_by`: The user who created the team. Is null for real-life teams.
-* `team_city`: The city the team is located in. Can be null for virtual teams.
-* `team_name`: The name of the team.
-* `players`: A list of the team's player_id's. Technically, a user-created team could have no players.
+This endpoint takes in a `username` and `password`. The player is represented
+by a username and a password that is validated for user-level operations.
 
-PUT players/{player_id}
+This function maintains unique usernames.
 
-This endpoint adds a player if the id does not exist, otherwise overwrites an existing player if the player_id is the same. This endpoint must take a non-null value for the `created_by` section as it cannot overwrite a real-life player. Accepts a player object:
-* `player_id`: The internal id of the player. Can be used to query the
-  `/players/{player_id}` endpoint.
-* `player_name`: The name of the player.
-* `created_by`: The user who created the team. Is null for real-life teams.
-* `positions`: A list of position_ids that the player is able to play.
-* `at_bat`: The number of times a player has been up to bat, total.
-* `runs`: The number of runs scored by the player.
-* `hits`: The number of times the ball is hit and the batter gets to at least first base.
-* `doubles`: The number of times the ball is hit and grants the batter 2 bases.
-* `triples`: The number of times the ball is hit and grants the batter 3 bases.
-* `home_runs`: The number of times the batter hits a home run.
-* `walks`: The number of times the batter walks. This grants the batter one base.
-* `strike_outs`: The number of times the batter strikes out.
-* `hit_by_pitch`: The number of times the batter is hit by the pitch. This grants the batter one base.
-* `sacrifice_flies`: The number of times the batter hits a fly ball that is caught out with less than two outs and, in the process, assists in a run.
-* `stolen_bases`: The number of times a runner successfully has stolen a base.
-* `caught_stealing`: The number of times a runner gets out in the process of stealing a base.
-* `on_base_percent`: Calculated (Hit + Ball + HBP) / (At-Bat + Walk + HBP + Sacrifice-Fly)
-* `batting_average`: Calculated Hit / At-bat
-
-DELETE teams/{team_id}
-
-This endpoint deletes the specified team by team_id. Will not delete a real-life team.
-
-DELETE players/{player_id}
-
-This endpoint deletes the specified player by player_id.  Will not delete a real-life player.
+The endpoint returns the username of the resulting user that was created.
 
 ---
 ### Edge Cases:

@@ -19,7 +19,7 @@ class UserJson(BaseModel):
 @router.post("/users/", tags=["users"])
 def add_user(user: UserJson):
     """
-    This endpoint adds a user. The player is represented
+    This endpoint takes in a `username` and `password`. The player is represented
     by a username and a password that is validated for user-level operations.
 
     This function maintains unique usernames.
