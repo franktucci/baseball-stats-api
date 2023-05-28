@@ -1,101 +1,67 @@
 from fastapi.testclient import TestClient
-
+from src import database as db
 from src import datatypes
+import sqlalchemy
 from src.api import games
 from src.api.server import app
-
-import json
-import factory
-import random
+from test import baseball_factory as bf
 
 client = TestClient(app)
 
-class PlayerStats:
-    player_id: int
-    single_count: int
-    double_count: int
-    triple_count: int
-    hr_count: int
-    walk_count: int
-    strike_out_count: int
-    hit_by_pitch_count: int
-    sac_fly_count: int
-    other_prp: int
-
-class PlayerStatsFactory:
-    player_id = 0
-    single_count = random.randrange(0, 10)
-    double_count = random.randrange(0, 10)
-    triple_count = random.randrange(0, 10)
-    hr_count = random.randrange(0, 10)
-    walk_count = random.randrange(0, 10)
-    strike_out_count = random.randrange(0, 10)
-    hit_by_pitch_count = random.randrange(0, 10)
-    sac_fly_count = random.randrange(0, 10)
-    other_out_count = random.randrange(0, 10)
-    class Meta:
-        model = PlayerStats
-
-class PlayerFactory(factory.Factory):
-    first_name = factory.Faker('first_name')
-    last_name = factory.Faker('last_name')
-    position = factory.Faker('text')
-    created_by = 'castindico'
-    player_id = 0
-    team_id = 0
-    class Meta:
-        model = datatypes.Player
-
-# def test_get_game_by_id():
-#     response = client.get("/games/133")
-#     assert response.status_code == 200
-#
-#     with open("test/games/133.json", encoding="utf-8") as f:
-#         assert response.json() == json.load(f)
-#
-# def test_get_game_by_id_2():
-#     response = client.get("/games/19757")
-#     assert response.status_code == 200
-#
-#     with open("test/games/19757.json", encoding="utf-8") as f:
-#         assert response.json() == json.load(f)
-#
-# def test_get_games():
-#     response = client.get("/games/")
-#     assert response.status_code == 200
-#
-#     with open("test/games/root.json", encoding="utf-8") as f:
-#         assert response.json() == json.load(f)
-#
-# def test_sort_filter():
-#     response = client.get("/games/?name=amy&limit=10")
-#     assert response.status_code == 200
-#
-#     with open(
-#         "test/games/lines-name=amy&limit=10.json",
-#         encoding="utf-8",
-#     ) as f:
-#         assert response.json() == json.load(f)
-#
-# def test_sort_filter_2():
-#     response = client.get("/games/?text=said&offset=30&limit=10&sort=conversation")
-#     assert response.status_code == 200
-#
-#     with open(
-#         "test/games/lines-text=said&offset=30&limit=10&sort=conversation.json",
-#         encoding="utf-8",
-#     ) as f:
-#         assert response.json() == json.load(f)
-
-# def test_404():
-#     response = client.get("/games/-1")
-#     assert response.status_code == 404
-
 def test_event():
-    player = PlayerStatsFactory()
+    player = bf.PlayerStatsFactory()
     bases = [False, False, False]
     event, outs, runs = games.simulate_event(1, 0, player, bases)
-    assert event is not None
+
     assert event['player_id'] == player.player_id
     assert event['inning'] == 1
     assert event['B/T'] == 0
+    assert 0 <= event['enum'] <= 10
+
+
+def test_half():
+    with db.engine.connect() as conn:
+        players_result = conn.execute(sqlalchemy.select(db.players.c.player_id).order_by(sqlalchemy.desc('player_id')))
+
+    player_id = players_result.first().player_id + 1
+
+    lineup = []
+    player_stats = {}
+
+    for i in range(10):
+        lineup.append(player_id)
+        player_stats[player_id] = bf.PlayerStatsFactory()
+        player_id += 1
+
+    half_events, half_runs, order = games.simulate_half(1, 0, player_stats, lineup, 1)
+
+    assert len(half_events) > 0
+    assert 1 <= order <= 10
+
+def test_inning():
+    with db.engine.connect() as conn:
+        players_result = conn.execute(sqlalchemy.select(db.players.c.player_id).order_by(sqlalchemy.desc('player_id')))
+
+    player_id = players_result.first().player_id + 1
+
+    player_stats = {}
+    home_lineup = []
+
+    for i in range(10):
+        home_lineup.append(player_id)
+        player_stats[player_id] = bf.PlayerStatsFactory()
+        player_id += 1
+
+    away_lineup = []
+
+    for i in range(10):
+        away_lineup.append(player_id)
+        player_stats[player_id] = bf.PlayerStatsFactory()
+        player_id += 1
+
+    inn_events, inn_runs_home, inn_runs_away, inn_order_home, inn_order_away = games.simulate_inning(1, player_stats, [home_lineup, away_lineup], [1, 1])
+
+
+    assert len(inn_events) > 0
+    assert 1 <= inn_order_home <= 10
+    assert 1 <= inn_order_away <= 10

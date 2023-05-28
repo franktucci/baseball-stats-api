@@ -20,7 +20,8 @@ class UserJson(BaseModel):
 def add_user(user: UserJson):
     """
     This endpoint takes in a `username` and `password`. The player is represented
-    by a username and a password that is validated for user-level operations.
+    by a username and a password that is validated for user-level operations (Please don't input, like,
+    your actual bank password here)
 
     This function maintains unique usernames.
 

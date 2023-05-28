@@ -257,7 +257,6 @@ def list_players(
         .order_by(order_by, db.players.c.player_id)
     )
 
-    # filter only if name parameter is passed
     if name != "":
         stmt = stmt.where(db.players.c.first_name.ilike(f"%{name}%"))
     if created != "":
