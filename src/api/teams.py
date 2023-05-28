@@ -132,7 +132,7 @@ def list_teams(
     created: str = "",
     limit: int = Query(50, ge=1, le=250),
     offset: int = Query(0, ge=0),
-    sort: team_sort_options = team_sort_options.team_name,
+    sort: team_sort_options = team_sort_options.team_id,
 ):
     """
     This endpoint returns a list of teams. For each team it returns:
