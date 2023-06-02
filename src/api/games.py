@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from typing import List
 import random
 from Crypto.Hash import SHA256
+import time
 
 router = APIRouter()
 
@@ -321,6 +322,8 @@ def simulate(game: GameJson):
     else:
         event_id = event_id_event.event_id + 1
 
+    events_output = []
+
     with db.engine.begin() as conn:
         conn.execute(
             db.games.insert().values(
@@ -333,17 +336,18 @@ def simulate(game: GameJson):
             )
         )
         for event in events:
-            conn.execute(
-                db.events.insert().values(
-                    event_id=event_id,
-                    game_id=game_id,
-                    player_id=event['player_id'],
-                    inning=event['inning'],
-                    BT=event['B/T'],
-                    enum=event['enum']
-                )
+            events_output.append(
+                {
+                    'event_id': event_id,
+                    'game_id': game_id,
+                    'player_id': event['player_id'],
+                    'inning': event['inning'],
+                    'BT': event['B/T'],
+                    'enum': event['enum']
+                }
             )
             event_id += 1
+        conn.execute(db.events.insert(), events_output)
 
     stmt = (
         sqlalchemy.select(
@@ -356,7 +360,6 @@ def simulate(game: GameJson):
         .select_from(db.events.join(db.players, db.events.c.player_id == db.players.c.player_id).join(db.event_enums, db.events.c.enum == db.event_enums.c.enum))
         .where(db.events.c.game_id == game_id)
     )
-
     with db.engine.connect() as conn:
         events_result = conn.execute(stmt)
 
@@ -371,7 +374,6 @@ def simulate(game: GameJson):
                 'happening': event.string
             }
         )
-
     return {
         'game_id': game_id,
         'home_score': home_score,
