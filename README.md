@@ -2,6 +2,7 @@
 
 * Frank Tucci - ftucci@calpoly.edu
 * Randall Caler - rcaler@calpoly.edu
+* Sean Tomer - stomerho@calpoly.edu
 
 ### User flow:
 
