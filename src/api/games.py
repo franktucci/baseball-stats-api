@@ -368,43 +368,22 @@ def simulate(game: GameJson):
         orders = [inn_order_away, inn_order_away]
         inning += 1
 
-    stmt = (sqlalchemy.select(db.games.c.game_id).order_by(sqlalchemy.desc('game_id')))
-    with db.engine.connect() as conn:
-        game_result = conn.execute(stmt)
-
-    game_id_game = game_result.first()
-    if game_id_game is None:
-        game_id = 1
-    else:
-        game_id = game_id_game.game_id + 1
-
-    stmt = (sqlalchemy.select(db.events.c.event_id).order_by(sqlalchemy.desc('event_id')))
-    with db.engine.connect() as conn:
-        event_result = conn.execute(stmt)
-
-    event_id_event = event_result.first()
-    if event_id_event is None:
-        event_id = 1
-    else:
-        event_id = event_id_event.event_id + 1
-
     events_output = []
 
     with db.engine.begin() as conn:
-        conn.execute(
+        games_result = conn.execute(
             db.games.insert().values(
-                game_id=game_id,
                 created_by=game.created_by,
                 home_team_id=game.lineup1.team_id,
                 away_team_id=game.lineup2.team_id,
                 home_score=home_score,
                 away_score=away_score
-            )
+            ).returning(db.games.c.game_id)
         )
+        game_id = games_result.first().game_id
         for event in events:
             events_output.append(
                 {
-                    'event_id': event_id,
                     'game_id': game_id,
                     'player_id': event['player_id'],
                     'inning': event['inning'],
@@ -412,7 +391,6 @@ def simulate(game: GameJson):
                     'enum': event['enum']
                 }
             )
-            event_id += 1
         conn.execute(db.events.insert(), events_output)
 
     stmt = (

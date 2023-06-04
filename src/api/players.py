@@ -179,25 +179,17 @@ def add_player(player: PlayerJson):
     if not team.created_by or team.created_by != user.username:
         raise HTTPException(status_code=422, detail="can't add a player to a team that isn't yours!")
 
-    stmt = (sqlalchemy.select(db.players.c.player_id).order_by(sqlalchemy.desc('player_id')))
-
-    with db.engine.connect() as conn:
-        player_result = conn.execute(stmt)
-
-    player_id = player_result.first().player_id + 1
-
     with db.engine.begin() as conn:
-        conn.execute(
+        players_result = conn.execute(
             db.players.insert().values(
-                player_id=player_id,
                 created_by=player.created_by,
                 team_id=player.team_id,
                 first_name=player.first_name,
                 last_name=player.last_name,
                 position=player.position
-            )
+            ).returning(db.players.c.player_id)
         )
-    return {'player_id': player_id}
+    return {'player_id': players_result.first().player_id}
 
 def filter_helper(e):
     return sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), sqlalchemy.and_((db.events.c.enum == e.value), sqlalchemy.or_(db.events.c.player_id > 1682, sqlalchemy.and_((db.events.c.player_id <= 1682), (db.events.c.game_id <= 2429))))).label(e.name.lower() + '_count')

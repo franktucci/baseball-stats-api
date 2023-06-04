@@ -103,23 +103,15 @@ def add_team(team: TeamJson):
     if d.hexdigest() != user.password_hash:
         raise HTTPException(status_code=422, detail="incorrect password.")
 
-    stmt = (sqlalchemy.select(db.teams.c.team_id).order_by(sqlalchemy.desc('team_id')))
-
-    with db.engine.connect() as conn:
-        team_result = conn.execute(stmt)
-
-    team_id = team_result.first().team_id + 1
-
     with db.engine.begin() as conn:
-        conn.execute(
+        teams_result = conn.execute(
             db.teams.insert().values(
-                team_id=team_id,
                 created_by=team.created_by,
                 team_city=team.team_city,
                 team_name=team.team_name
-            )
+            ).returning(db.teams.c.team_id)
         )
-    return {'team_id': team_id}
+    return {'team_id': teams_result.first().team_id}
 
 class team_sort_options(str, Enum):
     team_name = "team_name"
