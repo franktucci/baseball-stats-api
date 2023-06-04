@@ -19,7 +19,7 @@ class EventCodes(Enum):
     HR = 3
     WALK = 4
     STRIKE_OUT = 5
-    HIT_PITCH = 6
+    HIT_BY_PITCH = 6
     SAC_FLY = 7
     OTHER_OUT = 8
     STOLEN = 9
@@ -71,17 +71,17 @@ def get_player(player_id: int):
             db.players.c.team_id,
             db.players.c.created_by,
             db.players.c.position,
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SINGLE.value).label('single_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.DOUBLE.value).label('double_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.TRIPLE.value).label('triple_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HR.value).label('hr_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.WALK.value).label('walk_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STRIKE_OUT.value).label('strike_out_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HIT_PITCH.value).label('hit_by_pitch_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SAC_FLY.value).label('sac_fly_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.OTHER_OUT.value).label('other_out_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STOLEN.value).label('stolen_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.CAUGHT_STEALING.value).label('caught_stealing_count')
+            filter_helper(EventCodes.SINGLE),
+            filter_helper(EventCodes.DOUBLE),
+            filter_helper(EventCodes.TRIPLE),
+            filter_helper(EventCodes.HR),
+            filter_helper(EventCodes.WALK),
+            filter_helper(EventCodes.STRIKE_OUT),
+            filter_helper(EventCodes.HIT_BY_PITCH),
+            filter_helper(EventCodes.SAC_FLY),
+            filter_helper(EventCodes.OTHER_OUT),
+            filter_helper(EventCodes.STOLEN),
+            filter_helper(EventCodes.CAUGHT_STEALING),
         )
         .select_from(db.players.join(db.events, db.events.c.player_id == db.players.c.player_id, isouter=True))
         .group_by(db.players.c.player_id)
@@ -165,6 +165,7 @@ def add_player(player: PlayerJson):
     stmt = (
         sqlalchemy.select(
             db.teams.c.team_id,
+            db.teams.c.created_by
         )
         .where(db.teams.c.team_id == player.team_id)
     )
@@ -175,7 +176,7 @@ def add_player(player: PlayerJson):
     if team is None:
         raise HTTPException(status_code=422, detail="team must exist.")
 
-    if team.created_by != user.created_by:
+    if not team.created_by or team.created_by != user.username:
         raise HTTPException(status_code=422, detail="can't add a player to a team that isn't yours!")
 
     stmt = (sqlalchemy.select(db.players.c.player_id).order_by(sqlalchemy.desc('player_id')))
@@ -198,6 +199,8 @@ def add_player(player: PlayerJson):
         )
     return {'player_id': player_id}
 
+def filter_helper(e):
+    return sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), sqlalchemy.and_((db.events.c.enum == e.value), sqlalchemy.or_(db.events.c.player_id > 1682, sqlalchemy.and_((db.events.c.player_id <= 1682), (db.events.c.game_id <= 2429))))).label(e.name.lower() + '_count')
 class players_sort_options(str, Enum):
     player_id = "id"
     player_name = "name"
@@ -267,17 +270,17 @@ def list_players(
             db.teams.c.team_name,
             db.players.c.created_by,
             db.players.c.position,
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SINGLE.value).label('single_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.DOUBLE.value).label('double_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.TRIPLE.value).label('triple_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HR.value).label('hr_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.WALK.value).label('walk_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STRIKE_OUT.value).label('strike_out_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HIT_PITCH.value).label('hit_by_pitch_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SAC_FLY.value).label('sac_fly_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.OTHER_OUT.value).label('other_out_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STOLEN.value).label('stolen_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.CAUGHT_STEALING.value).label('caught_stealing_count')
+            filter_helper(EventCodes.SINGLE),
+            filter_helper(EventCodes.DOUBLE),
+            filter_helper(EventCodes.TRIPLE),
+            filter_helper(EventCodes.HR),
+            filter_helper(EventCodes.WALK),
+            filter_helper(EventCodes.STRIKE_OUT),
+            filter_helper(EventCodes.HIT_BY_PITCH),
+            filter_helper(EventCodes.SAC_FLY),
+            filter_helper(EventCodes.OTHER_OUT),
+            filter_helper(EventCodes.STOLEN),
+            filter_helper(EventCodes.CAUGHT_STEALING),
         )
         .select_from(db.players.join(db.events, db.events.c.player_id == db.players.c.player_id, isouter=True).join(db.teams, db.players.c.team_id == db.teams.c.team_id, isouter=True))
         .limit(limit)

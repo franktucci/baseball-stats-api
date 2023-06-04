@@ -65,6 +65,7 @@ def test_add_player():
 
     with db.engine.connect() as conn:
         players_result = conn.execute(sqlalchemy.select('*').where(db.players.c.player_id == player.player_id))
+        events_result = conn.execute(sqlalchemy.select('*').where(db.events.c.player_id == player.player_id))
     player2 = players_result.first()
     with db.engine.begin() as conn:
         conn.execute(sqlalchemy.delete(db.players).where(db.players.c.player_id == player.player_id))
@@ -79,6 +80,7 @@ def test_add_player():
     assert player.first_name == player2.first_name
     assert player.last_name == player2.last_name
     assert player.position == player2.position
+    assert events_result.first() is None
 
 def test_list_players():
     with db.engine.connect() as conn:

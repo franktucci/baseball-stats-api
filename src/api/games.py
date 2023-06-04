@@ -17,6 +17,8 @@ def calculate_hits(row):
     return row.single_count + row.double_count + row.triple_count + row.hr_count
 def calculate_at_bats(row):
     return calculate_hits(row) + row.walk_count + row.strike_out_count + row.hit_by_pitch_count + row.sac_fly_count + row.other_out_count
+def filter_helper(e):
+    return sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), sqlalchemy.and_((db.events.c.enum == e.value), sqlalchemy.or_(db.events.c.player_id > 1682, sqlalchemy.and_((db.events.c.player_id <= 1682), (db.events.c.game_id <= 2429))))).label(e.name.lower() + '_count')
 
 class EventCodes(Enum):
     SINGLE = 0
@@ -25,7 +27,7 @@ class EventCodes(Enum):
     HR = 3
     WALK = 4
     STRIKE_OUT = 5
-    HIT_PITCH = 6
+    HIT_BY_PITCH = 6
     SAC_FLY = 7
     OTHER_OUT = 8
     STOLEN = 9
@@ -206,7 +208,7 @@ def simulate_event(inning, half, player, bases):
         elif hr_prp <= rand < walk_prp:
             event_code = EventCodes.WALK.value
         else:
-            event_code = EventCodes.HIT_PITCH.value
+            event_code = EventCodes.HIT_BY_PITCH.value
         bases.insert(0, True)
         if bases.pop():
             runs += 1
@@ -326,17 +328,17 @@ def simulate(game: GameJson):
     stmt = (
         sqlalchemy.select(
             db.players.c.player_id,
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SINGLE.value).label('single_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.DOUBLE.value).label('double_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.TRIPLE.value).label('triple_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HR.value).label('hr_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.WALK.value).label('walk_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STRIKE_OUT.value).label('strike_out_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HIT_PITCH.value).label('hit_by_pitch_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SAC_FLY.value).label('sac_fly_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.OTHER_OUT.value).label('other_out_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STOLEN.value).label('stolen_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.CAUGHT_STEALING.value).label('caught_stealing_count')
+            filter_helper(EventCodes.SINGLE),
+            filter_helper(EventCodes.DOUBLE),
+            filter_helper(EventCodes.TRIPLE),
+            filter_helper(EventCodes.HR),
+            filter_helper(EventCodes.WALK),
+            filter_helper(EventCodes.STRIKE_OUT),
+            filter_helper(EventCodes.HIT_BY_PITCH),
+            filter_helper(EventCodes.SAC_FLY),
+            filter_helper(EventCodes.OTHER_OUT),
+            filter_helper(EventCodes.STOLEN),
+            filter_helper(EventCodes.CAUGHT_STEALING),
         )
         .select_from(db.players.join(db.events, db.events.c.player_id == db.players.c.player_id, isouter=True))
         .where(db.players.c.player_id.in_(game.lineup1.lineup) | db.players.c.player_id.in_(game.lineup2.lineup))
