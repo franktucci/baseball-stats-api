@@ -1,15 +1,12 @@
 from fastapi.testclient import TestClient
 from src.api.server import app
 from src import database as db
-from test import baseball_factory
 import sqlalchemy
 from test import baseball_factory as bf
-import json
 from faker import Faker
 from Crypto.Hash import SHA256
 
 client = TestClient(app)
-
 
 def test_get_team():
     with db.engine.connect() as conn:

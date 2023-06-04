@@ -161,3 +161,5 @@ Input will be validated for self-created characters. An error will be returned f
 https://www.kaggle.com/datasets/vivovinco/2022-mlb-player-stats?resource=download
 
 https://www.retrosheet.org
+
+![meme in questionable taste](./ballin.jpg?raw=true)

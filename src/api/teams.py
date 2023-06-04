@@ -66,10 +66,6 @@ def get_team(team_id: int):
         "players": players
     }
 
-class team_sort_options(str, Enum):
-    team_name = "team_name"
-    team_id = "team_id"
-
 class TeamJson(BaseModel):
     team_city: str
     team_name: str
@@ -125,7 +121,15 @@ def add_team(team: TeamJson):
         )
     return {'team_id': team_id}
 
-# Add get parameters
+class team_sort_options(str, Enum):
+    team_name = "team_name"
+    team_id = "team_id"
+
+class team_show_options(str, Enum):
+    real = "real"
+    fake = "fake"
+    both = "both"
+
 @router.get("/teams/", tags=["teams"])
 def list_teams(
     name: str = "",
@@ -133,6 +137,7 @@ def list_teams(
     limit: int = Query(50, ge=1, le=250),
     offset: int = Query(0, ge=0),
     sort: team_sort_options = team_sort_options.team_id,
+    show: team_show_options = team_show_options.fake,
 ):
     """
     This endpoint returns a list of teams. For each team it returns:
@@ -144,6 +149,11 @@ def list_teams(
     * You can filter for teams whose name contains a string by using the name or created by by using the
     `name` and/or `created` query parameters.
 
+    You can filter the results by using the `show` query parameter:
+    * `real` - Real life players only.
+    * `fake` - Fake players only.
+    * `both` - Both real and fake players.
+
     You can sort the results by using the `sort` query parameter:
     * `id` - Sort by team_id.
     * `name` - Sort by team name alphabetically.
@@ -154,6 +164,15 @@ def list_teams(
     else:
         order_by = db.teams.c.team_id
 
+    if show is team_show_options.real:
+        show_by = db.teams.c.created_by == None
+    elif show is team_show_options.fake:
+        show_by = db.teams.c.created_by != None
+    elif show is team_show_options.both:
+        show_by = True
+    else:
+        raise HTTPException(status_code=422, detail="incorrect show query parameter.")
+
     stmt = (
         sqlalchemy.select(
             db.teams.c.team_id,
@@ -163,6 +182,7 @@ def list_teams(
         )
         .limit(limit)
         .offset(offset)
+        .where(show_by)
         .order_by(order_by, db.teams.c.team_id)
     )
 

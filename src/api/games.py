@@ -10,7 +10,6 @@ from pydantic import BaseModel
 from typing import List
 import random
 from Crypto.Hash import SHA256
-import time
 
 router = APIRouter()
 
@@ -72,6 +71,71 @@ def get_game(game_id: int):
         "home_score": game.home_score,
         "away_score": game.away_score
     }
+
+# @router.get("/games/", tags=["teams"])
+# def list_games(
+#     name: str = "",
+#     created: str = "",
+#     limit: int = Query(50, ge=1, le=250),
+#     offset: int = Query(0, ge=0),
+#     sort: team_sort_options = team_sort_options.team_id,
+# ):
+#     """
+#     This endpoint returns a list of games. For each team it returns:
+#
+#     * `game_id`: The internal id of the team. Can be used to query the /teams/{team_id} endpoint.
+#     * `created_by`: The user who created the team. Is null for real-life teams.
+#     * `home_team`: The name of the home team.
+#     * `away_name`: The name of the away team.
+#     * You can filter for teams whose name contains a string by using the name or created by by using the
+#     `name` and/or `created` query parameters.
+#
+#     You can filter the results by using the `show` query parameter:
+#     * `real` - Real life players only.
+#     * `fake` - Fake players only.
+#     * `both` - Both real and fake players.
+#
+#     You can sort the results by using the `sort` query parameter:
+#     * `id` - Sort by team_id.
+#     * `name` - Sort by team name alphabetically.
+#     """
+#
+#     if sort is team_sort_options.team_name:
+#         order_by = db.teams.c.team_name
+#     else:
+#         order_by = db.teams.c.team_id
+#
+#     stmt = (
+#         sqlalchemy.select(
+#             db.teams.c.team_id,
+#             db.teams.c.created_by,
+#             db.teams.c.team_city,
+#             db.teams.c.team_name,
+#         )
+#         .limit(limit)
+#         .offset(offset)
+#         .order_by(order_by, db.teams.c.team_id)
+#     )
+#
+#     if name != "":
+#         stmt = stmt.where(db.teams.c.team_name.ilike(f"%{name}%"))
+#     if created != "":
+#         stmt = stmt.where(db.teams.c.created_by.ilike(f"%{created}%"))
+#
+#     with db.engine.connect() as conn:
+#         result = conn.execute(stmt)
+#         json = []
+#         for row in result:
+#             json.append(
+#                 {
+#                     "team_id": row.team_id,
+#                     "created_by": row.created_by,
+#                     "team_city": row.team_city,
+#                     "team_name": row.team_name,
+#                 }
+#             )
+#
+#     return json
 
 def simulate_inning(inning, player_stats, lineups, orders):
     half = 0
@@ -181,9 +245,9 @@ def simulate_event(inning, half, player, bases):
             runs += 1
     else:
         if walk_prp <= rand < strike_out_prp:
-            event_code = EventCodes.SINGLE.value
+            event_code = EventCodes.STRIKE_OUT.value
         elif hit_by_prp <= rand < sac_fly_prp:
-            event_code = EventCodes.WALK.value
+            event_code = EventCodes.SAC_FLY.value
         else:
             event_code = EventCodes.OTHER_OUT.value
         outs += 1

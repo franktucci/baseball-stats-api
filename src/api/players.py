@@ -132,11 +132,15 @@ def add_player(player: PlayerJson):
     This endpoint takes in a `first_name`, `last_name`, `team_id`, `created_by`,
     `password`, and `position`.
 
+    `position` can be one of the following options: 1B, 2B, SS, 3B, IF, OF, P, C, DH
+
     The endpoint returns the id of the resulting player that was created.
     """
 
     if player.created_by is None:
         raise HTTPException(status_code=422, detail="must specify a username.")
+    if player.position not in ['1B', '2B', 'SS', '3B', 'IF', 'OF', 'P', 'C', 'DH']:
+        raise HTTPException(status_code=422, detail="incorrect position option.")
 
     stmt = (
         sqlalchemy.select(
@@ -167,8 +171,12 @@ def add_player(player: PlayerJson):
     with db.engine.connect() as conn:
         team_result = conn.execute(stmt)
 
-    if team_result.first() is None:
+    team = team_result.first()
+    if team is None:
         raise HTTPException(status_code=422, detail="team must exist.")
+
+    if team.created_by != user.created_by:
+        raise HTTPException(status_code=422, detail="can't add a player to a team that isn't yours!")
 
     stmt = (sqlalchemy.select(db.players.c.player_id).order_by(sqlalchemy.desc('player_id')))
 
@@ -194,7 +202,11 @@ class players_sort_options(str, Enum):
     player_id = "id"
     player_name = "name"
 
-# Add get parameters
+class players_show_options(str, Enum):
+    real = "real"
+    fake = "fake"
+    both = "both"
+
 @router.get("/players/", tags=["players"])
 def list_players(
     name: str = "",
@@ -203,6 +215,7 @@ def list_players(
     limit: int = Query(50, ge=1, le=250),
     offset: int = Query(0, ge=0),
     sort: players_sort_options = players_sort_options.player_id,
+    show: players_show_options = players_show_options.fake,
 ):
     """
     This endpoint returns a list of players in 2022. For each player it returns:
@@ -218,7 +231,12 @@ def list_players(
     * `batting_average`: Calculated Hit / At-bat
 
     You can filter for players whose name contains a string by using the
-    `name`, `team`, and/or `created` query parameters.
+    `name`, `team`, `created` query parameters.
+
+    You can filter the results by using the `show` query parameter:
+    * `real` - Real life players only.
+    * `fake` - Fake players only.
+    * `both` - Both real and fake players.
 
     You can sort the results by using the `sort` query parameter:
     * `id` - Sort by player_id.
@@ -227,8 +245,19 @@ def list_players(
 
     if sort is players_sort_options.player_name:
         order_by = db.players.c.first_name
-    else:
+    elif sort is players_sort_options.player_id:
         order_by = db.players.c.player_id
+    else:
+        raise HTTPException(status_code=422, detail="invalid sort query parameter.")
+
+    if show is players_show_options.real:
+        show_by = db.players.c.created_by == None
+    elif show is players_show_options.fake:
+        show_by = db.players.c.created_by != None
+    elif show is players_show_options.both:
+        show_by = True
+    else:
+        raise HTTPException(status_code=422, detail="incorrect show query parameter.")
 
     stmt = (
         sqlalchemy.select(
@@ -253,6 +282,7 @@ def list_players(
         .select_from(db.players.join(db.events, db.events.c.player_id == db.players.c.player_id, isouter=True).join(db.teams, db.players.c.team_id == db.teams.c.team_id, isouter=True))
         .limit(limit)
         .offset(offset)
+        .where(show_by)
         .group_by(db.players.c.player_id, db.teams.c.team_name)
         .order_by(order_by, db.players.c.player_id)
     )
