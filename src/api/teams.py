@@ -2,13 +2,8 @@ from fastapi import APIRouter, HTTPException
 from enum import Enum
 from src import database as db
 from fastapi.params import Query
-from sqlalchemy import create_engine
-import os
-import dotenv
 import sqlalchemy
-import dotenv
 from pydantic import BaseModel
-from typing import List
 from Crypto.Hash import SHA256
 
 router = APIRouter()

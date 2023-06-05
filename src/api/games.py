@@ -276,7 +276,7 @@ class GameJson(BaseModel):
 def simulate(game: GameJson):
     """
     This endpoint takes in `created by`, `password`, and two lineup objects. A lineup consists of:
-    * `team_id`: The internal id of the team. Can be used to query the `/view_roster/{team_id}` endpoint.
+    * `team_id`: The internal id of the team. Can be used to query the `/teams/{team_id}` endpoint.
     * `lineup`: A list of exactly 10 player_ids (0 is the designated hitter, 1-9 are in batting order).
 
     This endpoint returns a simulated game object. This game object calculates a random game based on a

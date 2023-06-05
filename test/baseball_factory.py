@@ -7,7 +7,7 @@ class PlayerFactory(factory.Factory):
         model = datatypes.Player
     player_id = 0
     created_by = factory.Faker('user_name')
-    team_id = 0
+    team_id = factory.Faker('pyint', min_value=0, max_value=1000000)
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
     position = factory.Faker('random_element', elements=['1B', '2B', 'SS', '3B', 'IF', 'OF', 'P', 'C', 'DH'])
@@ -20,8 +20,8 @@ class GameFactory(factory.Factory):
     created_by = factory.Faker('user_name')
     home_score = factory.Faker('pyint', min_value=0, max_value=10)
     away_score = factory.Faker('pyint', min_value=0, max_value=10)
-    home_team_id = 0
-    away_team_id = 0
+    home_team_id = factory.Faker('pyint', min_value=0, max_value=1000000)
+    away_team_id = factory.Faker('pyint', min_value=0, max_value=1000000)
 
 
 class EventFactory(factory.Factory):
@@ -29,16 +29,16 @@ class EventFactory(factory.Factory):
         model = datatypes.Event
     event_id = 0
     inning = factory.Faker('pyint', min_value=1, max_value=9)
-    game_id = 0
+    game_id = factory.Faker('pyint', min_value=0, max_value=1000000)
     enum = factory.Faker('pyint', min_value=0, max_value=10)
-    player_id = 0
+    player_id = factory.Faker('pyint', min_value=0, max_value=1000000)
     BT = factory.Faker('pyint', min_value=0, max_value=1)
 
 
 class TeamFactory(factory.Factory):
     class Meta:
         model = datatypes.Team
-    team_id = 0
+    team_id = factory.Faker('pyint', min_value=0, max_value=1000000)
     created_by = factory.Faker('user_name')
     team_city = factory.Faker('city')
     team_name = factory.Faker('word')

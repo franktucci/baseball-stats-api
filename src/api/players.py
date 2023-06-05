@@ -2,12 +2,8 @@ from fastapi import APIRouter, HTTPException
 from enum import Enum
 from src import database as db
 from fastapi.params import Query
-from sqlalchemy import create_engine
-import os
-import dotenv
 import sqlalchemy
 from pydantic import BaseModel
-from typing import List
 from Crypto.Hash import SHA256
 
 router = APIRouter()
@@ -35,6 +31,9 @@ def calculate_obp(row):
     return 0.0 if denominator == 0 else round(numerator / denominator, 3)
 def calculate_avg(row):
     return 0.0 if calculate_at_bats(row) == 0 else round(calculate_hits(row) / calculate_at_bats(row), 3)
+
+def filter_helper(e):
+    return sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), sqlalchemy.and_((db.events.c.enum == e.value), sqlalchemy.or_(db.events.c.player_id > 1682, sqlalchemy.and_((db.events.c.player_id <= 1682), (db.events.c.game_id <= 2429))))).label(e.name.lower() + '_count')
 
 @router.get("/players/{player_id}", tags=["players"])
 def get_player(player_id: int):
@@ -86,7 +85,6 @@ def get_player(player_id: int):
         .select_from(db.players.join(db.events, db.events.c.player_id == db.players.c.player_id, isouter=True))
         .group_by(db.players.c.player_id)
         .where(db.players.c.player_id == player_id)
-
     )
     with db.engine.connect() as conn:
         players_result = conn.execute(stmt)
@@ -95,7 +93,6 @@ def get_player(player_id: int):
 
     if player is None:
          raise HTTPException(status_code=404, detail="player not found.")
-
 
     return {
         'player_id': player_id,
@@ -190,9 +187,6 @@ def add_player(player: PlayerJson):
             ).returning(db.players.c.player_id)
         )
     return {'player_id': players_result.first().player_id}
-
-def filter_helper(e):
-    return sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), sqlalchemy.and_((db.events.c.enum == e.value), sqlalchemy.or_(db.events.c.player_id > 1682, sqlalchemy.and_((db.events.c.player_id <= 1682), (db.events.c.game_id <= 2429))))).label(e.name.lower() + '_count')
 class players_sort_options(str, Enum):
     player_id = "id"
     player_name = "name"
