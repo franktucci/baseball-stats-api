@@ -39,3 +39,23 @@ def add_user(user: UserJson):
             )
         )
     return {'username': user.username}
+
+
+@router.delete("/users/{username}", tags=["players"])
+def delete_player(user: str, password: str):
+    stmt = (
+        sqlalchemy.select(db.username, db.password_hash)
+        .where(db.username == user and db.password_hash == password)
+    )
+    with db.engine.begin() as conn:
+        result = conn.execute(stmt)
+        row = result.fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Incorrect username or password.")
+          
+        delete_result = conn.execute(
+            db.players.delete().where(db.username == user)
+        )
+    if delete_result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return {"message": "User deleted successfully."}
