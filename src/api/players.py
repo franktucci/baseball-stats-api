@@ -203,7 +203,7 @@ def delete_player(player_id: int, created_by: str):
         sqlalchemy.select(db.players.c.created_by)
         .where(db.players.c.player_id == player_id)
     )
-    with db.engine.connect() as conn:
+    with db.engine.begin() as conn:
         result = conn.execute(stmt)
         row = result.fetchone()
         if row is None:
