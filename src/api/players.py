@@ -196,6 +196,30 @@ class players_show_options(str, Enum):
     fake = "fake"
     both = "both"
 
+    
+@router.delete("/players/{player_id}", tags=["players"])
+def delete_player(player_id: int, created_by: str):
+    stmt = (
+        sqlalchemy.select(db.players.c.created_by)
+        .where(db.players.c.player_id == player_id)
+    )
+    with db.engine.connect() as conn:
+        result = conn.execute(stmt)
+        row = result.fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Player not found.")
+        
+        if row.created_by != created_by:
+            raise HTTPException(status_code=403, detail="Unauthorized access.")    
+        delete_result = conn.execute(
+            db.players.delete().where(db.players.c.player_id == player_id)
+        )
+    if delete_result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Player not found.")
+    return {"message": "Player deleted successfully."}
+
+
+    
 @router.get("/players/", tags=["players"])
 def list_players(
     name: str = "",
