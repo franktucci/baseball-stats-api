@@ -310,11 +310,7 @@ def simulate(game: GameJson):
     user = user_result.first()
     if user is None:
         raise HTTPException(status_code=422, detail="user is not registered. Register at /users/.")
-    
-    if game.lineup1.created_by != user.username:
-        raise HTTPException(status_code=422, detail="home team does not belong to user.")
-    if game.lineup2.created_by != user.username:
-        raise HTTPException(status_code=422, detail="away team does not belong to user.")
+
     d = SHA256.new()
     d.update(bytes(game.password, 'utf8'))
     if d.hexdigest() != user.password_hash:
@@ -326,8 +322,6 @@ def simulate(game: GameJson):
         raise HTTPException(status_code=422, detail="Team cannot play itself.")
     for team in [game.lineup1, game.lineup2]:
         for player in team.lineup:
-            if player.created_by != user.username:
-                raise HTTPException(status_code=422, detail="player does not belong to user.")
             if team.lineup.count(player) > 1:
                 raise HTTPException(status_code=422, detail="Team contains duplicate players.")
 
