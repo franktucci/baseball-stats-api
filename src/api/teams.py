@@ -133,7 +133,7 @@ def list_teams(
     * `created_by`: The user who created the team. Is null for real-life teams.
     * `team_city`: The city the team is located in. Can be null for fictional teams.
     * `team_name`: The name of the team.
-    * You can filter for teams whose name contains a string by using the name or created by by using the
+    * You can filter for teams whose name starts with a string by using the name or created by by using the
     `name` and/or `created` query parameters.
 
     You can filter the results by using the `show` query parameter:

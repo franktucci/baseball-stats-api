@@ -219,7 +219,7 @@ def list_players(
     * `on_base_percent`: Calculated (Hit + Ball + HBP) / (At-Bat + Walk + HBP + Sacrifice-Fly)
     * `batting_average`: Calculated Hit / At-bat
 
-    You can filter for players whose name contains a string by using the
+    You can filter for players whose name starts with a string by using the
     `name`, `team`, `created` query parameters.
 
     You can filter the results by using the `show` query parameter:

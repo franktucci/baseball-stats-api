@@ -35,9 +35,9 @@ def upgrade() -> None:
         sa.Column('event_id', sa.Integer, sa.Identity(start=238158), primary_key=True),
         sa.Column('inning', sa.Integer, nullable=False),
         sa.Column('BT', sa.Integer, nullable=False),
-        sa.Column('game_id', sa.Integer, nullable=False),
+        sa.Column('game_id', sa.Integer, nullable=False, index=True),
         sa.Column('enum', sa.Integer, nullable=False),
-        sa.Column('player_id', sa.Integer, nullable=False),
+        sa.Column('player_id', sa.Integer, nullable=False, index=True),
     )
 
     file_name = './data/events_rows.csv'
@@ -67,9 +67,9 @@ def upgrade() -> None:
     players = op.create_table(
         'players',
         sa.Column('player_id', sa.Integer, sa.Identity(start=1683), primary_key=True),
-        sa.Column('created_by', sa.Text, nullable=True),
+        sa.Column('created_by', sa.Text, nullable=True, index=True),
         sa.Column('team_id', sa.Integer, nullable=False),
-        sa.Column('first_name', sa.Text, nullable=False),
+        sa.Column('first_name', sa.Text, nullable=False, index=True),
         sa.Column('last_name', sa.Text, nullable=False),
         sa.Column('position', sa.Text, nullable=False),
     )
@@ -85,9 +85,9 @@ def upgrade() -> None:
     teams = op.create_table(
         'teams',
         sa.Column('team_id', sa.Integer, sa.Identity(start=30), primary_key=True),
-        sa.Column('created_by', sa.Text, nullable=True),
+        sa.Column('created_by', sa.Text, nullable=True, index=True),
         sa.Column('team_city', sa.Text, nullable=True),
-        sa.Column('team_name', sa.Text, nullable=False),
+        sa.Column('team_name', sa.Text, nullable=False, index=True),
     )
 
     file_name = './data/teams_rows.csv'
