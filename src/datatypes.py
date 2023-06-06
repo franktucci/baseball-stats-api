@@ -43,3 +43,16 @@ class User:
 class EventEnum:
     enum: int
     string: str
+
+@dataclass
+class PlayerStats:
+    player_id: int
+    single_count: int
+    double_count: int
+    triple_count: int
+    hr_count: int
+    walk_count: int
+    strike_out_count: int
+    hit_by_pitch_count: int
+    sac_fly_count: int
+    other_out_count: int

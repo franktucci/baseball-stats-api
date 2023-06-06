@@ -2,12 +2,8 @@ from fastapi import APIRouter, HTTPException
 from enum import Enum
 from src import database as db
 from fastapi.params import Query
-from sqlalchemy import create_engine
-import os
-import dotenv
 import sqlalchemy
 from pydantic import BaseModel
-from typing import List
 from Crypto.Hash import SHA256
 
 router = APIRouter()
@@ -19,7 +15,7 @@ class EventCodes(Enum):
     HR = 3
     WALK = 4
     STRIKE_OUT = 5
-    HIT_PITCH = 6
+    HIT_BY_PITCH = 6
     SAC_FLY = 7
     OTHER_OUT = 8
     STOLEN = 9
@@ -35,6 +31,9 @@ def calculate_obp(row):
     return 0.0 if denominator == 0 else round(numerator / denominator, 3)
 def calculate_avg(row):
     return 0.0 if calculate_at_bats(row) == 0 else round(calculate_hits(row) / calculate_at_bats(row), 3)
+
+def filter_helper(e):
+    return sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), sqlalchemy.and_((db.events.c.enum == e.value), sqlalchemy.or_(db.events.c.player_id > 1682, sqlalchemy.and_((db.events.c.player_id <= 1682), (db.events.c.game_id <= 2429))))).label(e.name.lower() + '_count')
 
 @router.get("/players/{player_id}", tags=["players"])
 def get_player(player_id: int):
@@ -71,22 +70,21 @@ def get_player(player_id: int):
             db.players.c.team_id,
             db.players.c.created_by,
             db.players.c.position,
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SINGLE.value).label('single_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.DOUBLE.value).label('double_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.TRIPLE.value).label('triple_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HR.value).label('hr_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.WALK.value).label('walk_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STRIKE_OUT.value).label('strike_out_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HIT_PITCH.value).label('hit_by_pitch_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SAC_FLY.value).label('sac_fly_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.OTHER_OUT.value).label('other_out_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STOLEN.value).label('stolen_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.CAUGHT_STEALING.value).label('caught_stealing_count')
+            filter_helper(EventCodes.SINGLE),
+            filter_helper(EventCodes.DOUBLE),
+            filter_helper(EventCodes.TRIPLE),
+            filter_helper(EventCodes.HR),
+            filter_helper(EventCodes.WALK),
+            filter_helper(EventCodes.STRIKE_OUT),
+            filter_helper(EventCodes.HIT_BY_PITCH),
+            filter_helper(EventCodes.SAC_FLY),
+            filter_helper(EventCodes.OTHER_OUT),
+            filter_helper(EventCodes.STOLEN),
+            filter_helper(EventCodes.CAUGHT_STEALING),
         )
         .select_from(db.players.join(db.events, db.events.c.player_id == db.players.c.player_id, isouter=True))
         .group_by(db.players.c.player_id)
         .where(db.players.c.player_id == player_id)
-
     )
     with db.engine.connect() as conn:
         players_result = conn.execute(stmt)
@@ -95,7 +93,6 @@ def get_player(player_id: int):
 
     if player is None:
          raise HTTPException(status_code=404, detail="player not found.")
-
 
     return {
         'player_id': player_id,
@@ -132,11 +129,15 @@ def add_player(player: PlayerJson):
     This endpoint takes in a `first_name`, `last_name`, `team_id`, `created_by`,
     `password`, and `position`.
 
+    `position` can be one of the following options: 1B, 2B, SS, 3B, IF, OF, P, C, DH
+
     The endpoint returns the id of the resulting player that was created.
     """
 
     if player.created_by is None:
         raise HTTPException(status_code=422, detail="must specify a username.")
+    if player.position not in ['1B', '2B', 'SS', '3B', 'IF', 'OF', 'P', 'C', 'DH']:
+        raise HTTPException(status_code=422, detail="incorrect position option.")
 
     stmt = (
         sqlalchemy.select(
@@ -161,40 +162,40 @@ def add_player(player: PlayerJson):
     stmt = (
         sqlalchemy.select(
             db.teams.c.team_id,
+            db.teams.c.created_by
         )
         .where(db.teams.c.team_id == player.team_id)
     )
     with db.engine.connect() as conn:
         team_result = conn.execute(stmt)
 
-    if team_result.first() is None:
+    team = team_result.first()
+    if team is None:
         raise HTTPException(status_code=422, detail="team must exist.")
 
-    stmt = (sqlalchemy.select(db.players.c.player_id).order_by(sqlalchemy.desc('player_id')))
-
-    with db.engine.connect() as conn:
-        player_result = conn.execute(stmt)
-
-    player_id = player_result.first().player_id + 1
+    if not team.created_by or team.created_by != user.username:
+        raise HTTPException(status_code=422, detail="can't add a player to a team that isn't yours!")
 
     with db.engine.begin() as conn:
-        conn.execute(
+        players_result = conn.execute(
             db.players.insert().values(
-                player_id=player_id,
                 created_by=player.created_by,
                 team_id=player.team_id,
                 first_name=player.first_name,
                 last_name=player.last_name,
                 position=player.position
-            )
+            ).returning(db.players.c.player_id)
         )
-    return {'player_id': player_id}
-
+    return {'player_id': players_result.first().player_id}
 class players_sort_options(str, Enum):
     player_id = "id"
     player_name = "name"
 
-# Add get parameters
+class players_show_options(str, Enum):
+    real = "real"
+    fake = "fake"
+    both = "both"
+
 @router.get("/players/", tags=["players"])
 def list_players(
     name: str = "",
@@ -203,6 +204,7 @@ def list_players(
     limit: int = Query(50, ge=1, le=250),
     offset: int = Query(0, ge=0),
     sort: players_sort_options = players_sort_options.player_id,
+    show: players_show_options = players_show_options.fake,
 ):
     """
     This endpoint returns a list of players in 2022. For each player it returns:
@@ -217,8 +219,13 @@ def list_players(
     * `on_base_percent`: Calculated (Hit + Ball + HBP) / (At-Bat + Walk + HBP + Sacrifice-Fly)
     * `batting_average`: Calculated Hit / At-bat
 
-    You can filter for players whose name contains a string by using the
-    `name`, `team`, and/or `created` query parameters.
+    You can filter for players whose name starts with a string by using the
+    `name`, `team`, `created` query parameters.
+
+    You can filter the results by using the `show` query parameter:
+    * `real` - Real life players only.
+    * `fake` - Fake players only.
+    * `both` - Both real and fake players.
 
     You can sort the results by using the `sort` query parameter:
     * `id` - Sort by player_id.
@@ -227,8 +234,19 @@ def list_players(
 
     if sort is players_sort_options.player_name:
         order_by = db.players.c.first_name
-    else:
+    elif sort is players_sort_options.player_id:
         order_by = db.players.c.player_id
+    else:
+        raise HTTPException(status_code=422, detail="invalid sort query parameter.")
+
+    if show is players_show_options.real:
+        show_by = db.players.c.created_by == None
+    elif show is players_show_options.fake:
+        show_by = db.players.c.created_by != None
+    elif show is players_show_options.both:
+        show_by = True
+    else:
+        raise HTTPException(status_code=422, detail="incorrect show query parameter.")
 
     stmt = (
         sqlalchemy.select(
@@ -238,32 +256,32 @@ def list_players(
             db.teams.c.team_name,
             db.players.c.created_by,
             db.players.c.position,
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SINGLE.value).label('single_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.DOUBLE.value).label('double_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.TRIPLE.value).label('triple_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HR.value).label('hr_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.WALK.value).label('walk_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STRIKE_OUT.value).label('strike_out_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HIT_PITCH.value).label('hit_by_pitch_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SAC_FLY.value).label('sac_fly_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.OTHER_OUT.value).label('other_out_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STOLEN.value).label('stolen_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.CAUGHT_STEALING.value).label('caught_stealing_count')
+            filter_helper(EventCodes.SINGLE),
+            filter_helper(EventCodes.DOUBLE),
+            filter_helper(EventCodes.TRIPLE),
+            filter_helper(EventCodes.HR),
+            filter_helper(EventCodes.WALK),
+            filter_helper(EventCodes.STRIKE_OUT),
+            filter_helper(EventCodes.HIT_BY_PITCH),
+            filter_helper(EventCodes.SAC_FLY),
+            filter_helper(EventCodes.OTHER_OUT),
+            filter_helper(EventCodes.STOLEN),
+            filter_helper(EventCodes.CAUGHT_STEALING),
         )
         .select_from(db.players.join(db.events, db.events.c.player_id == db.players.c.player_id, isouter=True).join(db.teams, db.players.c.team_id == db.teams.c.team_id, isouter=True))
         .limit(limit)
         .offset(offset)
+        .where(show_by)
         .group_by(db.players.c.player_id, db.teams.c.team_name)
         .order_by(order_by, db.players.c.player_id)
     )
 
-    # filter only if name parameter is passed
     if name != "":
-        stmt = stmt.where(db.players.c.first_name.ilike(f"%{name}%"))
+        stmt = stmt.where(db.players.c.first_name.ilike(f"{name}%"))
     if created != "":
-        stmt = stmt.where(db.players.c.created_by.ilike(f"%{created}%"))
+        stmt = stmt.where(db.players.c.created_by.ilike(f"{created}%"))
     if team != "":
-        stmt = stmt.where(db.teams.c.team_name.ilike(f"%{team}%"))
+        stmt = stmt.where(db.teams.c.team_name.ilike(f"{team}%"))
 
     with db.engine.connect() as conn:
         result = conn.execute(stmt)
@@ -283,3 +301,30 @@ def list_players(
             )
 
     return json
+
+class DeletePlayerJson(BaseModel):
+    password: str
+@router.delete("/players/{player_id}", tags=["players"])
+def delete_player(player_id: int, password: DeletePlayerJson):
+    """
+    This endpoint deletes a player. It takes in a `password`.
+
+    The endpoint returns the id of the resulting player that was deleted.
+    """
+    stmt = (
+        sqlalchemy.select(
+            db.players.c.password_hash)
+        .where(db.players.c.player_id == player_id)
+        .join(db.users, db.users.c.username == db.users.c.created_by)
+    )
+    with db.engine.begin() as conn:
+        result = conn.execute(stmt)
+        row = result.fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Player not found.")
+        delete_result = conn.execute(
+            db.players.delete().where(db.players.c.player_id == player_id)
+        )
+    if delete_result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Player not found.")
+    return {"message": "Player deleted successfully."}

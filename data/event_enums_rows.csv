@@ -1,0 +1,12 @@
+enum,string
+0,Single
+1,Double
+2,Triple
+3,Home run
+4,Walk
+5,Strike out
+6,Hit by pitch
+7,Sacrifice fly
+8,Other out
+9,Stolen
+10,Caught Stealing

@@ -17,6 +17,8 @@ def calculate_hits(row):
     return row.single_count + row.double_count + row.triple_count + row.hr_count
 def calculate_at_bats(row):
     return calculate_hits(row) + row.walk_count + row.strike_out_count + row.hit_by_pitch_count + row.sac_fly_count + row.other_out_count
+def filter_helper(e):
+    return sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), sqlalchemy.and_((db.events.c.enum == e.value), sqlalchemy.or_(db.events.c.player_id > 1682, sqlalchemy.and_((db.events.c.player_id <= 1682), (db.events.c.game_id <= 2429))))).label(e.name.lower() + '_count')
 
 class EventCodes(Enum):
     SINGLE = 0
@@ -25,7 +27,7 @@ class EventCodes(Enum):
     HR = 3
     WALK = 4
     STRIKE_OUT = 5
-    HIT_PITCH = 6
+    HIT_BY_PITCH = 6
     SAC_FLY = 7
     OTHER_OUT = 8
     STOLEN = 9
@@ -71,6 +73,7 @@ def get_game(game_id: int):
         "home_score": game.home_score,
         "away_score": game.away_score
     }
+
 
 def simulate_inning(inning, player_stats, lineups, orders):
     half = 0
@@ -141,7 +144,7 @@ def simulate_event(inning, half, player, bases):
         elif hr_prp <= rand < walk_prp:
             event_code = EventCodes.WALK.value
         else:
-            event_code = EventCodes.HIT_PITCH.value
+            event_code = EventCodes.HIT_BY_PITCH.value
         bases.insert(0, True)
         if bases.pop():
             runs += 1
@@ -180,9 +183,9 @@ def simulate_event(inning, half, player, bases):
             runs += 1
     else:
         if walk_prp <= rand < strike_out_prp:
-            event_code = EventCodes.SINGLE.value
+            event_code = EventCodes.STRIKE_OUT.value
         elif hit_by_prp <= rand < sac_fly_prp:
-            event_code = EventCodes.WALK.value
+            event_code = EventCodes.SAC_FLY.value
         else:
             event_code = EventCodes.OTHER_OUT.value
         outs += 1
@@ -209,7 +212,7 @@ class GameJson(BaseModel):
 def simulate(game: GameJson):
     """
     This endpoint takes in `created by`, `password`, and two lineup objects. A lineup consists of:
-    * `team_id`: The internal id of the team. Can be used to query the `/view_roster/{team_id}` endpoint.
+    * `team_id`: The internal id of the team. Can be used to query the `/teams/{team_id}` endpoint.
     * `lineup`: A list of exactly 10 player_ids (0 is the designated hitter, 1-9 are in batting order).
 
     This endpoint returns a simulated game object. This game object calculates a random game based on a
@@ -261,17 +264,17 @@ def simulate(game: GameJson):
     stmt = (
         sqlalchemy.select(
             db.players.c.player_id,
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SINGLE.value).label('single_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.DOUBLE.value).label('double_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.TRIPLE.value).label('triple_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HR.value).label('hr_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.WALK.value).label('walk_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STRIKE_OUT.value).label('strike_out_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.HIT_PITCH.value).label('hit_by_pitch_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.SAC_FLY.value).label('sac_fly_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.OTHER_OUT.value).label('other_out_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.STOLEN.value).label('stolen_count'),
-            sqlalchemy.funcfilter(sqlalchemy.func.count(db.events.c.enum), db.events.c.enum == EventCodes.CAUGHT_STEALING.value).label('caught_stealing_count')
+            filter_helper(EventCodes.SINGLE),
+            filter_helper(EventCodes.DOUBLE),
+            filter_helper(EventCodes.TRIPLE),
+            filter_helper(EventCodes.HR),
+            filter_helper(EventCodes.WALK),
+            filter_helper(EventCodes.STRIKE_OUT),
+            filter_helper(EventCodes.HIT_BY_PITCH),
+            filter_helper(EventCodes.SAC_FLY),
+            filter_helper(EventCodes.OTHER_OUT),
+            filter_helper(EventCodes.STOLEN),
+            filter_helper(EventCodes.CAUGHT_STEALING),
         )
         .select_from(db.players.join(db.events, db.events.c.player_id == db.players.c.player_id, isouter=True))
         .where(db.players.c.player_id.in_(game.lineup1.lineup) | db.players.c.player_id.in_(game.lineup2.lineup))
@@ -301,49 +304,30 @@ def simulate(game: GameJson):
         orders = [inn_order_away, inn_order_away]
         inning += 1
 
-    stmt = (sqlalchemy.select(db.games.c.game_id).order_by(sqlalchemy.desc('game_id')))
-    with db.engine.connect() as conn:
-        game_result = conn.execute(stmt)
-
-    game_id_game = game_result.first()
-    if game_id_game is None:
-        game_id = 1
-    else:
-        game_id = game_id_game.game_id + 1
-
-    stmt = (sqlalchemy.select(db.events.c.event_id).order_by(sqlalchemy.desc('event_id')))
-    with db.engine.connect() as conn:
-        event_result = conn.execute(stmt)
-
-    event_id_event = event_result.first()
-    if event_id_event is None:
-        event_id = 1
-    else:
-        event_id = event_id_event.event_id + 1
+    events_output = []
 
     with db.engine.begin() as conn:
-        conn.execute(
+        games_result = conn.execute(
             db.games.insert().values(
-                game_id=game_id,
                 created_by=game.created_by,
                 home_team_id=game.lineup1.team_id,
                 away_team_id=game.lineup2.team_id,
                 home_score=home_score,
                 away_score=away_score
-            )
+            ).returning(db.games.c.game_id)
         )
+        game_id = games_result.first().game_id
         for event in events:
-            conn.execute(
-                db.events.insert().values(
-                    event_id=event_id,
-                    game_id=game_id,
-                    player_id=event['player_id'],
-                    inning=event['inning'],
-                    BT=event['B/T'],
-                    enum=event['enum']
-                )
+            events_output.append(
+                {
+                    'game_id': game_id,
+                    'player_id': event['player_id'],
+                    'inning': event['inning'],
+                    'BT': event['B/T'],
+                    'enum': event['enum']
+                }
             )
-            event_id += 1
+        conn.execute(db.events.insert(), events_output)
 
     stmt = (
         sqlalchemy.select(
@@ -356,7 +340,6 @@ def simulate(game: GameJson):
         .select_from(db.events.join(db.players, db.events.c.player_id == db.players.c.player_id).join(db.event_enums, db.events.c.enum == db.event_enums.c.enum))
         .where(db.events.c.game_id == game_id)
     )
-
     with db.engine.connect() as conn:
         events_result = conn.execute(stmt)
 
@@ -371,7 +354,6 @@ def simulate(game: GameJson):
                 'happening': event.string
             }
         )
-
     return {
         'game_id': game_id,
         'home_score': home_score,

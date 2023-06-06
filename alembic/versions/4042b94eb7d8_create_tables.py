@@ -7,6 +7,7 @@ Create Date: 2023-05-22 14:11:28.236536
 """
 from alembic import op
 import sqlalchemy as sa
+import csv
 
 
 # revision identifiers, used by Alembic.
@@ -17,45 +18,86 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.create_table(
+    event_enums = op.create_table(
         'event_enums',
         sa.Column('enum', sa.Integer, primary_key=True),
         sa.Column('string', sa.Text, nullable=False),
     )
-    op.create_table(
+
+    file_name = './data/event_enums_rows.csv'
+    lines = list(csv.reader(open(file_name, 'r')))
+    headers = lines.pop(0)
+    data = [dict(zip(headers, line)) for line in lines]
+    op.bulk_insert(event_enums, data)
+
+    events = op.create_table(
         'events',
-        sa.Column('event_id', sa.Integer, primary_key=True),
+        sa.Column('event_id', sa.Integer, sa.Identity(start=238158), primary_key=True),
         sa.Column('inning', sa.Integer, nullable=False),
         sa.Column('BT', sa.Integer, nullable=False),
-        sa.Column('game_id', sa.Integer, nullable=False),
+        sa.Column('game_id', sa.Integer, nullable=False, index=True),
         sa.Column('enum', sa.Integer, nullable=False),
-        sa.Column('player_id', sa.Integer, nullable=False),
+        sa.Column('player_id', sa.Integer, nullable=False, index=True),
     )
-    op.create_table(
+
+    file_name = './data/events_rows.csv'
+    lines = list(csv.reader(open(file_name, 'r')))
+    headers = lines.pop(0)
+    data = [dict(zip(headers, line)) for line in lines]
+    op.bulk_insert(events, data)
+
+    games = op.create_table(
         'games',
-        sa.Column('game_id', sa.Integer, primary_key=True),
+        sa.Column('game_id', sa.Integer, sa.Identity(start=2430), primary_key=True),
         sa.Column('created_by', sa.Text, nullable=True),
         sa.Column('home_team_id', sa.Integer, nullable=False),
         sa.Column('away_team_id', sa.Integer, nullable=False),
         sa.Column('home_score', sa.Integer, nullable=False),
         sa.Column('away_score', sa.Integer, nullable=False),
     )
-    op.create_table(
+
+    file_name = './data/games_rows.csv'
+    lines = list(csv.reader(open(file_name, 'r')))
+    headers = lines.pop(0)
+    data = [dict(zip(headers, line)) for line in lines]
+    for d in data:
+        d['created_by'] = None
+    op.bulk_insert(games, data)
+
+    players = op.create_table(
         'players',
-        sa.Column('player_id', sa.Integer, primary_key=True),
-        sa.Column('created_by', sa.Text, nullable=True),
+        sa.Column('player_id', sa.Integer, sa.Identity(start=1683), primary_key=True),
+        sa.Column('created_by', sa.Text, nullable=True, index=True),
         sa.Column('team_id', sa.Integer, nullable=False),
-        sa.Column('first_name', sa.Text, nullable=False),
+        sa.Column('first_name', sa.Text, nullable=False, index=True),
         sa.Column('last_name', sa.Text, nullable=False),
         sa.Column('position', sa.Text, nullable=False),
     )
-    op.create_table(
+
+    file_name = './data/players_rows.csv'
+    lines = list(csv.reader(open(file_name, 'r')))
+    headers = lines.pop(0)
+    data = [dict(zip(headers, line)) for line in lines]
+    for d in data:
+        d['created_by'] = None
+    op.bulk_insert(players, data)
+
+    teams = op.create_table(
         'teams',
-        sa.Column('team_id', sa.Integer, primary_key=True),
-        sa.Column('created_by', sa.Text, nullable=True),
+        sa.Column('team_id', sa.Integer, sa.Identity(start=30), primary_key=True),
+        sa.Column('created_by', sa.Text, nullable=True, index=True),
         sa.Column('team_city', sa.Text, nullable=True),
-        sa.Column('team_name', sa.Text, nullable=False),
+        sa.Column('team_name', sa.Text, nullable=False, index=True),
     )
+
+    file_name = './data/teams_rows.csv'
+    lines = list(csv.reader(open(file_name, 'r')))
+    headers = lines.pop(0)
+    data = [dict(zip(headers, line)) for line in lines]
+    for d in data:
+        d['created_by'] = None
+    op.bulk_insert(teams, data)
+
     op.create_table(
         'users',
         sa.Column('username', sa.Text, primary_key=True),
