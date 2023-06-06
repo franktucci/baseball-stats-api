@@ -8,7 +8,7 @@ from test import baseball_factory as bf
 from faker import Faker
 
 """
-**ONLY RUN THIS FILE WHEN CONNECTED TO LOCALHOST**
+RUN THIS SCRIPT ON LOCALHOST ONLY
 """
 
 def stress_test(num_entities):
@@ -20,7 +20,7 @@ def stress_test(num_entities):
 
     for i in range(num_entities):
         user = vars(bf.UserFactory())
-        user['username'] = user['username'] + str(i)
+        user['username'] = user['username']+ str(i)
         users.append(user)
 
         player = vars(bf.PlayerFactory())

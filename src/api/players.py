@@ -196,30 +196,6 @@ class players_show_options(str, Enum):
     fake = "fake"
     both = "both"
 
-    
-@router.delete("/players/{player_id}", tags=["players"])
-def delete_player(player_id: int, created_by: str):
-    stmt = (
-        sqlalchemy.select(db.players.c.created_by)
-        .where(db.players.c.player_id == player_id)
-    )
-    with db.engine.begin() as conn:
-        result = conn.execute(stmt)
-        row = result.fetchone()
-        if row is None:
-            raise HTTPException(status_code=404, detail="Player not found.")
-        
-        if row.created_by != created_by:
-            raise HTTPException(status_code=403, detail="Unauthorized access.")    
-        delete_result = conn.execute(
-            db.players.delete().where(db.players.c.player_id == player_id)
-        )
-    if delete_result.rowcount == 0:
-        raise HTTPException(status_code=404, detail="Player not found.")
-    return {"message": "Player deleted successfully."}
-
-
-    
 @router.get("/players/", tags=["players"])
 def list_players(
     name: str = "",
@@ -301,11 +277,11 @@ def list_players(
     )
 
     if name != "":
-        stmt = stmt.where(db.players.c.first_name.ilike(f"%{name}%"))
+        stmt = stmt.where(db.players.c.first_name.ilike(f"{name}%"))
     if created != "":
-        stmt = stmt.where(db.players.c.created_by.ilike(f"%{created}%"))
+        stmt = stmt.where(db.players.c.created_by.ilike(f"{created}%"))
     if team != "":
-        stmt = stmt.where(db.teams.c.team_name.ilike(f"%{team}%"))
+        stmt = stmt.where(db.teams.c.team_name.ilike(f"{team}%"))
 
     with db.engine.connect() as conn:
         result = conn.execute(stmt)
@@ -325,3 +301,30 @@ def list_players(
             )
 
     return json
+
+class DeletePlayerJson(BaseModel):
+    password: str
+@router.delete("/players/{player_id}", tags=["players"])
+def delete_player(player_id: int, password: DeletePlayerJson):
+    """
+    This endpoint deletes a player. It takes in a `password`.
+
+    The endpoint returns the id of the resulting player that was deleted.
+    """
+    stmt = (
+        sqlalchemy.select(
+            db.players.c.password_hash)
+        .where(db.players.c.player_id == player_id)
+        .join(db.users, db.users.c.username == db.users.c.created_by)
+    )
+    with db.engine.begin() as conn:
+        result = conn.execute(stmt)
+        row = result.fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Player not found.")
+        delete_result = conn.execute(
+            db.players.delete().where(db.players.c.player_id == player_id)
+        )
+    if delete_result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Player not found.")
+    return {"message": "Player deleted successfully."}

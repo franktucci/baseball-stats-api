@@ -70,7 +70,7 @@ class TeamJson(BaseModel):
 @router.post("/teams/", tags=["teams"])
 def add_team(team: TeamJson):
     """
-    This endpoint takes in a `team_name`, `team_city`, `created_by`, and `password`.
+    This endpoint adds a team. It takes in a `team_name`, `team_city`, `created_by`, and `password`.
 
     The endpoint returns the id of the resulting team that was created.
     """
@@ -174,9 +174,9 @@ def list_teams(
     )
 
     if name != "":
-        stmt = stmt.where(db.teams.c.team_name.ilike(f"%{name}%"))
+        stmt = stmt.where(db.teams.c.team_name.ilike(f"{name}%"))
     if created != "":
-        stmt = stmt.where(db.teams.c.created_by.ilike(f"%{created}%"))
+        stmt = stmt.where(db.teams.c.created_by.ilike(f"{created}%"))
 
     with db.engine.connect() as conn:
         result = conn.execute(stmt)
@@ -192,3 +192,40 @@ def list_teams(
             )
 
     return json
+
+class DeleteTeamJson(BaseModel):
+    password: str
+@router.delete("/teams/{team_id}", tags=["teams"])
+def delete_team(team_id: int, password: DeleteTeamJson):
+    """
+    This endpoint deletes a team. It takes in a `password`.
+
+    The endpoint returns the id of the resulting team that was deleted.
+    """
+
+    stmt = (
+        sqlalchemy.select(
+            db.users.c.password_hash
+        )
+        .where(db.teams.c.team_id == team_id)
+        .join(db.users, db.users.c.username == db.teams.c.created_by)
+    )
+
+    with db.engine.connect() as conn:
+        user_result = conn.execute(stmt)
+
+    user = user_result.first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="Team not found.")
+
+    d = SHA256.new()
+    d.update(bytes(password.password, 'utf8'))
+
+    if d.hexdigest() != user.password_hash:
+        raise HTTPException(status_code=422, detail="incorrect password.")
+
+    print('here')
+    with db.engine.begin() as conn:
+        conn.execute(sqlalchemy.delete(db.teams).where(db.teams.c.team_id == team_id))
+
+    return {'team_id': team_id}
