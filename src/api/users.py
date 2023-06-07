@@ -41,21 +41,35 @@ def add_user(user: UserJson):
     return {'username': user.username}
 
 
-@router.delete("/users/{username}", tags=["players"])
-def delete_player(user: str, password: str):
+class DeleteUserJson(BaseModel):
+    password: str
+@router.delete("/users/{username}", tags=["users"])
+def delete_user(username: str, password: DeleteUserJson):
+    """
+    This endpoint deletes a user. It takes in a `password`.
+
+    The endpoint returns the id of the resulting user that was deleted.
+    """
     stmt = (
-        sqlalchemy.select(db.username, db.password_hash)
-        .where(db.username == user and db.password_hash == password)
+        sqlalchemy.select(
+            db.users.c.password_hash
+        )
+        .where(db.users.c.username == username)
     )
     with db.engine.begin() as conn:
-        result = conn.execute(stmt)
-        row = result.fetchone()
-        if row is None:
-            raise HTTPException(status_code=404, detail="Incorrect username or password.")
-          
-        delete_result = conn.execute(
-            db.players.delete().where(db.username == user)
-        )
-    if delete_result.rowcount == 0:
-        raise HTTPException(status_code=404, detail="User not found.")
-    return {"message": "User deleted successfully."}
+        user_result = conn.execute(stmt)
+
+    user = user_result.first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="user not found.")
+
+    d = SHA256.new()
+    d.update(bytes(password.password, 'utf8'))
+
+    if d.hexdigest() != user.password_hash:
+        raise HTTPException(status_code=422, detail="incorrect password.")
+
+    with db.engine.begin() as conn:
+        conn.execute(sqlalchemy.delete(db.users).where(db.users.c.username == username))
+
+    return {'username': username}
