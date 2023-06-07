@@ -8,7 +8,7 @@
 <div align="center">
   Basically Accurate Simulator Endpoints -- for Ball
   <br />
-  <a href="#about"><strong>Explore the screenshots »</strong></a>
+  <a href="https://github.com/franktucci/baseball-stats-api/tree/staging/images"><strong>Explore the screenshots »</strong></a>
   <br />
   <br />
   <a href="https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
