@@ -187,6 +187,7 @@ def add_player(player: PlayerJson):
             ).returning(db.players.c.player_id)
         )
     return {'player_id': players_result.first().player_id}
+
 class players_sort_options(str, Enum):
     player_id = "id"
     player_name = "name"
@@ -313,18 +314,26 @@ def delete_player(player_id: int, password: DeletePlayerJson):
     """
     stmt = (
         sqlalchemy.select(
-            db.players.c.password_hash)
+            db.users.c.password_hash
+        )
         .where(db.players.c.player_id == player_id)
-        .join(db.users, db.users.c.username == db.users.c.created_by)
+        .join(db.users, db.users.c.username == db.players.c.created_by)
     )
     with db.engine.begin() as conn:
-        result = conn.execute(stmt)
-        row = result.fetchone()
-        if row is None:
-            raise HTTPException(status_code=404, detail="Player not found.")
-        delete_result = conn.execute(
-            db.players.delete().where(db.players.c.player_id == player_id)
-        )
-    if delete_result.rowcount == 0:
-        raise HTTPException(status_code=404, detail="Player not found.")
-    return {"message": "Player deleted successfully."}
+        user_result = conn.execute(stmt)
+
+    user = user_result.first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="player not found.")
+
+    d = SHA256.new()
+    d.update(bytes(password.password, 'utf8'))
+
+    if d.hexdigest() != user.password_hash:
+        raise HTTPException(status_code=422, detail="incorrect password.")
+
+    with db.engine.begin() as conn:
+        conn.execute(sqlalchemy.delete(db.players).where(db.players.c.player_id == player_id))
+
+    return {'player_id': player_id}
+

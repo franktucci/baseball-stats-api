@@ -253,9 +253,10 @@ def simulate(game: GameJson):
         raise HTTPException(status_code=422, detail="incorrect password.")
 
     if len(game.lineup1.lineup) != 10 or len(game.lineup2.lineup) != 10:
-        raise HTTPException(status_code=422, detail="Endpoint was not given 10 players.")
+        raise HTTPException(status_code=422, detail="please give 10 players from each team per team lineup.")
     if game.lineup1.team_id == game.lineup2.team_id:
-        raise HTTPException(status_code=422, detail="Team cannot play itself.")
+        raise HTTPException(status_code=422, detail="team cannot play itself!.")
+
     for team in [game.lineup1, game.lineup2]:
         for player in team.lineup:
             if team.lineup.count(player) > 1:

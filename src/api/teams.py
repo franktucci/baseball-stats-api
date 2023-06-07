@@ -216,7 +216,7 @@ def delete_team(team_id: int, password: DeleteTeamJson):
 
     user = user_result.first()
     if user is None:
-        raise HTTPException(status_code=404, detail="Team not found.")
+        raise HTTPException(status_code=404, detail="team not found.")
 
     d = SHA256.new()
     d.update(bytes(password.password, 'utf8'))
@@ -224,7 +224,6 @@ def delete_team(team_id: int, password: DeleteTeamJson):
     if d.hexdigest() != user.password_hash:
         raise HTTPException(status_code=422, detail="incorrect password.")
 
-    print('here')
     with db.engine.begin() as conn:
         conn.execute(sqlalchemy.delete(db.teams).where(db.teams.c.team_id == team_id))
 
