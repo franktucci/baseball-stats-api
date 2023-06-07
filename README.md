@@ -1,7 +1,7 @@
 <h1 align="center">
-  <a href="https://github.com/franktucci/baseball-stats-api">
+  <a href="https://tarrevizsla.tumblr.com/post/670792162162671616/things-renew-themselves-irresistible-revolution">
     <!-- Please provide path to your logo here -->
-    <img src="images/ballin.jpg" alt="Logo" width="100" height="100">
+    <img src="images/ballin.jpg" alt="Logo" width="500" height="350">
   </a>
 </h1>
 
@@ -14,7 +14,7 @@
   <a href="https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
   ·
   <a href="https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feat%3A+">Request a Feature</a>
-  .
+  ·
   <a href="https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=question&template=04_SUPPORT_QUESTION.md&title=support%3A+">Ask a Question</a>
 </div>
 
@@ -55,10 +55,25 @@
 <table><tr><td>
 
 > **[?]**
-> Battle against friends, create teams with different mlb players -- or make your own. Basically Accurate Simulator Endpoints -- for Ball
+> Battle against friends, create teams with different mlb players (or make your own!). Basically Accurate Simulator Endpoints -- for Ball
 > offers rich and complex functionality for your baseball simulating needs. Simply register using the /users/ endpoint, and choose from
 > hundreds of players with real life stats from the 2022 season. See how your own players move up (or down) the standings as they continue
 > to play.
+
+<details>
+<summary>Screenshots</summary>
+<br>
+
+> **[?]**
+> Please provide your screenshots here.
+
+|                          Create a Team                           |                          Simulate a Game                          |                   Check your Player's Standings                   |
+|:----------------------------------------------------------------:|:-----------------------------------------------------------------:|:-----------------------------------------------------------------:|
+| <img src="images/screenshot.png" title="Home Page" width="100%"> | <img src="images/screenshot.png" title="Login Page" width="100%"> | <img src="images/screenshot.png" title="Login Page" width="100%"> |
+
+</details>
+
+</td></tr></table>
 
 ### Built With
 
@@ -120,7 +135,7 @@ Please read [our contribution guidelines](docs/CONTRIBUTING.md), and thank you f
 
 ## Authors & contributors
 
-The original setup of this repository is by [Frank Tucci](https://github.com/franktucci).
+The original setup of this repository is by [Frank Tucci](https://github.com/franktucci), [Randall Caler](https://github.com/franktucci), and [Sean Tomer](https://github.com/smtomer).
 
 For a full list of all authors and contributors, see [the contributors page](https://github.com/franktucci/baseball-stats-api/contributors).
 
