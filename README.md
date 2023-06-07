@@ -1,165 +1,143 @@
-# baseball-stats-api
+<h1 align="center">
+  <a href="https://github.com/franktucci/baseball-stats-api">
+    <!-- Please provide path to your logo here -->
+    <img src="images/ballin.jpg" alt="Logo" width="100" height="100">
+  </a>
+</h1>
 
-* Frank Tucci - ftucci@calpoly.edu
-* Randall Caler - rcaler@calpoly.edu
-* Sean Tomer - stomerho@calpoly.edu
+<div align="center">
+  Basically Accurate Simulator Endpoints -- for Ball
+  <br />
+  <a href="#about"><strong>Explore the screenshots »</strong></a>
+  <br />
+  <br />
+  <a href="https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
+  ·
+  <a href="https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feat%3A+">Request a Feature</a>
+  .
+  <a href="https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=question&template=04_SUPPORT_QUESTION.md&title=support%3A+">Ask a Question</a>
+</div>
 
-### User flow:
+<div align="center">
+<br />
 
-As a baseball fan, I want a way to keep up with up-to-date statistics and follow up on how the season is going for each team and who the best players are. 
+[![Project license](https://img.shields.io/github/license/franktucci/baseball-stats-api.svg?style=flat-square)](LICENSE)
 
-As a casual Seattle Mariners fan, I want to see how my team and its players are performing and how they stack up to other teams in an accessible, easy manner. 
+[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/franktucci/baseball-stats-api/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+[![code with love by franktucci](https://img.shields.io/badge/%3C%2F%3E%20with%20%E2%99%A5%20by-franktucci-ff1414.svg?style=flat-square)](https://github.com/franktucci)
 
-As an enthusiastic sports better, I want to see who’s statistically on top and see who their best players are to most accurately predict who will win. 
+</div>
 
-As an avid baseball player, I want an outlet to make a team and play other teams in a simulated game based on real statistics in the current season of the MLB. 
+<details open="open">
+<summary>Table of Contents</summary>
 
----
-### Intro:
+- [About](#about)
+  - [Built With](#built-with)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Usage](#usage)
+- [Roadmap](#roadmap)
+- [Support](#support)
+- [Project assistance](#project-assistance)
+- [Contributing](#contributing)
+- [Authors & contributors](#authors--contributors)
+- [Security](#security)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
 
-Our API serves a twofold purpose. First, storing basic baseball statistics for every player, and keeping a team roster. We’re going to limit our initial version to only stats from the 2022 season, though we would be open to expanding our database to other seasons in the future. 
-
-Secondly, we want to allow users to create their own fictional players and fictional reams with real or fictional players, and leverage those player stats to participate in simulated, randomized games. For example, if a player has a .250 batting average for the 2022 season, they would hit a .250 in the simulated game as well, etc, something not incredibly serious.
-
-The API backend will service a website where it will be accessible to a user with or without an account. Should a user choose not to make an account, they will be able to check on player and team statistics for the 2022 season. The application will be easily accessible and have an intuitive interface that guides users to find both team statistics as well as individual player statistics. Should a user make an account, they will be able to save and recall their custom team and players to the database. Real-life teams are only viewable and are not editable. Users who wish to make small alterations to real-life teams will have the website create a clone of that player or team with the `created_by` data replaced with their username. We can easily imagine using an API key scheme attached to a user to prevent others from tampering/deleting your own teams, but this is something we need to research more into before committing to anything for the initial version.
-
----
-### Endpoints:
-
-GET /players/{player_id}
-
-This endpoint returns a player's stats for 2022.
-* `player_id`: The internal id of the player. Can be used to query the
-  `/players/{player_id}` endpoint.
-* `player_name`: The name of the player.
-* `created_by`: The user who created the team. Is null for real-life teams.
-* `team_id`: The internal id of the team the player plays on. Can be used to query the
-  `/teams/{team_id}` endpoint.
-* `positions`: A string representation of the positions a character can play.
-* `at_bat`: The number of times a player has been up to bat, total.
-* `singles`: The number of times the ball is hit and the batter gets to first base.
-* `doubles`: The number of times the ball is hit and grants the batter 2 bases.
-* `triples`: The number of times the ball is hit and grants the batter 3 bases.
-* `home_runs`: The number of times the batter hits a home run.
-* `walks`: The number of times the batter walks. This grants the batter one base.
-* `strike_outs`: The number of times the batter strikes out.
-* `hit_by_pitch`: The number of times the batter is hit by the pitch. This grants the batter one base.
-* `sacrifice_flies`: The number of times the batter hits a fly ball that is caught out with less than two outs and, in the process, assists in a run.
-* `stolen_bases`: The number of times a runner successfully has stolen a base.
-* `caught_stealing`: The number of times a runner gets out in the process of stealing a base.
-* `on_base_percent`: Calculated (Hit + Ball + HBP) / (At-Bat + Walk + HBP + Sacrifice-Fly)
-* `batting_average`: Calculated Hit / At-bat
-
-POST /players/
-
-This endpoint takes in a `first_name`, `last_name`, `team_id`, `created_by`,
-`password`, and `position`.
-
-The endpoint returns the id of the resulting player that was created.
-
-GET /players/
-
-This endpoint returns a list of players in 2022. For each player it returns:
-* `player_id`: The internal id of the player. Can be used to query the
-  `/players/{player_id}` endpoint.
-* `player_name`: The name of the player.
-* `team_name`: The team name of the player.
-* `created_by`: The user who created the team. Is null for real-life teams.
-* `positions`: A string representing the positions the player can play.
-* `at_bats`: The number of times a player has been up to bat.
-* `on_base_percent`: Calculated (Hit + Ball + HBP) / (At-Bat + Walk + HBP + Sacrifice-Fly)
-* `batting_average`: Calculated Hit / At-bat
-
-You can filter for players whose name contains a string by using the
-`name`, `team`, and/or `created` query parameters.
-
-You can sort the results by using the `sort` query parameter:
-* `id` - Sort by player_id.
-* `name` - Sort by first name alphabetically.
-
-GET /teams/{team_id}
-
-This endpoint returns a team's information in 2022. It returns:
-* `team_id`: The internal id of the team. Can be used to query the
-  `/teams/{team_id}` endpoint.
-* `created_by`: The user who created the team. Is null for real-life teams.
-* `team_city`: The city the team is located in. Can be null for virtual teams.
-* `team_name`: The name of the team.
-* `players`: A list of the team's player_id's. Can be used to query the
-  `/players/{player_id}` endpoint.
-
-POST /teams/
-
-This endpoint takes in a `team_name`, `team_city`, `created_by`, and `password`.
-
-The endpoint returns the id of the resulting team that was created.
-
-GET /teams/
-
-This endpoint returns a list of teams. For each team it returns:
-
-* `team_id`: The internal id of the team. Can be used to query the /teams/{team_id} endpoint.
-* `created_by`: The user who created the team. Is null for real-life teams.
-* `team_city`: The city the team is located in. Can be null for fictional teams.
-* `team_name`: The name of the team.
-
-You can filter for teams whose name contains a string by using the name or created by by using the
-`name` and/or `created` query parameters.
-
-You can sort the results by using the `sort` query parameter:
-* `id` - Sort by team_id.
-* `name` - Sort by team name alphabetically.
-
-GET /games/{game_id}
-
-This endpoint returns a game in 2022. It returns:
-* `game_id`: The internal id of the team. Can be used to query the
-  `/games/{game_id}` endpoint.
-* `created_by`: The user who created the team. Is null for real-life games.
-* `home_team_id`: The id of the home team. Can be used to query the `/teams/{team_id}` endpoint.
-* `away_team_id`: The id of the away team. Can be used to query the `/teams/{team_id}` endpoint.
-* `home_score`: The score of the home team.
-* `away_score`: The score of the away team.
-
-POST /game/
-
-This endpoint takes in `created by`, `password`, and two lineup objects. A lineup consists of:
-* `team_id`: The internal id of the team. Can be used to query the `/view_roster/{team_id}` endpoint.
-* `lineup`: A list of exactly 10 player_ids (0 is the designated hitter, 1-9 are in batting order).
-
-This endpoint returns a simulated game object. This game object calculates a random game based on a
-player’s given stats. This consists of:
-* `game_id`: The game id.
-* `home_score`: The final score of the home team.
-* `away_score`: The final score of the away team.
-* `events`: A list of event objects that occurred in the game.
-
-Each event is represented by a dictionary with the following keys:
-* `inning`: The inning of the game.
-* `T/B` Top/Bottom of inning.
-* `player`: Player name of batter.
-* `happening`: What the player did. Some examples include Walk, Strikeout, Home Run, etc.
-
-POST /users/
-
-This endpoint takes in a `username` and `password`. The player is represented
-by a username and a password that is validated for user-level operations.
-
-This function maintains unique usernames.
-
-The endpoint returns the username of the resulting user that was created.
+</details>
 
 ---
-### Edge Cases:
 
-The `play_simulation` endpoint will introduce some noise function for rookie players. This is because we need some variance in order to create a fair game. A player who maybe has only gone up at bat once and hit will have a batting average of 1.0, which would skew playing data.
+## About
 
-Input will be validated for self-created characters. An error will be returned for an invalid character (more hits than at-bats, for example). Additional input validation means on a lineup to play a game, there must be exactly 10 players, and each field position must be covered, or an error is returned.
+<table><tr><td>
 
----
-### Data gathered from:
-https://www.kaggle.com/datasets/vivovinco/2022-mlb-player-stats?resource=download
+> **[?]**
+> Battle against friends, create teams with different mlb players -- or make your own. Basically Accurate Simulator Endpoints -- for Ball
+> offers rich and complex functionality for your baseball simulating needs. Simply register using the /users/ endpoint, and choose from
+> hundreds of players with real life stats from the 2022 season. See how your own players move up (or down) the standings as they continue
+> to play.
 
-https://www.retrosheet.org
+### Built With
 
-![meme in questionable taste](./ballin.jpg?raw=true)
+> **[?]**
+> PostgreSQL database with sqlalchemy querybuilder functionality in python
+
+## Getting Started
+
+### Prerequisites
+
+> **[?]**
+> What are the project requirements/dependencies?
+
+### Installation
+
+> **[?]**
+> Describe how to install and get started with the project.
+
+## Usage
+
+> **[?]**
+> How does one go about using it?
+> Provide various use cases and code examples here.
+
+## Roadmap
+
+See the [open issues](https://github.com/franktucci/baseball-stats-api/issues) for a list of proposed features (and known issues).
+
+- [Top Feature Requests](https://github.com/franktucci/baseball-stats-api/issues?q=label%3Aenhancement+is%3Aopen+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
+- [Top Bugs](https://github.com/franktucci/baseball-stats-api/issues?q=is%3Aissue+is%3Aopen+label%3Abug+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
+- [Newest Bugs](https://github.com/franktucci/baseball-stats-api/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
+
+## Support
+
+> **[?]**
+> Provide additional ways to contact the project maintainer/maintainers.
+
+Reach out to the maintainer at one of the following places:
+
+- [GitHub issues](https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=question&template=04_SUPPORT_QUESTION.md&title=support%3A+)
+- Contact options listed on [this GitHub profile](https://github.com/franktucci)
+
+## Project assistance
+
+If you want to say **thank you** or/and support active development of Basically Accurate Simulator Endpoints -- for Ball:
+
+- Add a [GitHub Star](https://github.com/franktucci/baseball-stats-api) to the project.
+- Tweet about the Basically Accurate Simulator Endpoints -- for Ball.
+- Write interesting articles about the project on [Dev.to](https://dev.to/), [Medium](https://medium.com/) or your personal blog.
+
+Together, we can make Basically Accurate Simulator Endpoints -- for Ball **better**!
+
+## Contributing
+
+First off, thanks for taking the time to contribute! Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make will benefit everybody else and are **greatly appreciated**.
+
+
+Please read [our contribution guidelines](docs/CONTRIBUTING.md), and thank you for being involved!
+
+## Authors & contributors
+
+The original setup of this repository is by [Frank Tucci](https://github.com/franktucci).
+
+For a full list of all authors and contributors, see [the contributors page](https://github.com/franktucci/baseball-stats-api/contributors).
+
+## Security
+
+Basically Accurate Simulator Endpoints -- for Ball follows good practices of security, but 100% security cannot be assured.
+Basically Accurate Simulator Endpoints -- for Ball is provided **"as is"** without any **warranty**. Use at your own risk.
+
+_For more information and to report security issues, please refer to our [security documentation](docs/SECURITY.md)._
+
+## License
+
+This project is licensed under the **MIT license**.
+
+See [LICENSE](LICENSE) for more information.
+
+## Acknowledgements
+
+> **[?]**
+> Data gathered from [retrosheet](https://www.retrosheet.org)
