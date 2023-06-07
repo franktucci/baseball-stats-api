@@ -71,5 +71,8 @@ def delete_user(username: str, password: DeleteUserJson):
 
     with db.engine.begin() as conn:
         conn.execute(sqlalchemy.delete(db.users).where(db.users.c.username == username))
+        conn.execute(sqlalchemy.delete(db.teams).where(db.teams.c.created_by == username))
+        conn.execute(sqlalchemy.delete(db.players).where(db.players.c.created_by == username))
+        conn.execute(sqlalchemy.delete(db.games).where(db.games.c.game_id == username))
 
     return {'username': username}

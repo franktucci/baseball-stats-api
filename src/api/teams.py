@@ -226,5 +226,6 @@ def delete_team(team_id: int, password: DeleteTeamJson):
 
     with db.engine.begin() as conn:
         conn.execute(sqlalchemy.delete(db.teams).where(db.teams.c.team_id == team_id))
+        conn.execute(sqlalchemy.delete(db.players).where(db.players.c.team_id == team_id))
 
     return {'team_id': team_id}
