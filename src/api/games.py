@@ -259,8 +259,8 @@ def simulate(game: GameJson):
 
     for team in [game.lineup1, game.lineup2]:
         for player in team.lineup:
-            if team.lineup.count(player) > 1:
-                raise HTTPException(status_code=422, detail="Team contains duplicate players.")
+            if game.lineup1.lineup.count(player) + game.lineup2.lineup.count(player) > 1:
+                raise HTTPException(status_code=422, detail="game contains duplicate players.")
 
     stmt = (
         sqlalchemy.select(
@@ -289,6 +289,9 @@ def simulate(game: GameJson):
         player.player_id: player
         for player in events_result
     }
+
+    if len(player_stats) < 20:
+        raise HTTPException(status_code=422, detail="player not found.")
 
     inning = 1
     home_score = 0
