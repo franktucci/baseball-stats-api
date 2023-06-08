@@ -8,7 +8,7 @@
 <div align="center">
   Basically Accurate Simulator Endpoints -- for Ball
   <br />
-  <a href="#about"><strong>Explore the screenshots »</strong></a>
+  <a href="https://github.com/franktucci/baseball-stats-api/tree/staging/images"><strong>Explore the screenshots »</strong></a>
   <br />
   <br />
   <a href="https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
@@ -21,10 +21,11 @@
 <div align="center">
 <br />
 
-[![Project license](https://img.shields.io/github/license/franktucci/baseball-stats-api.svg?style=flat-square)](LICENSE)
+[![Project license MIT License](https://img.shields.io/bower/l/this)](https://github.com/franktucci/baseball-stats-api/blob/staging/LICENSE)
 
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/franktucci/baseball-stats-api/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 [![code with love by franktucci](https://img.shields.io/badge/%3C%2F%3E%20with%20%E2%99%A5%20by-franktucci-ff1414.svg?style=flat-square)](https://github.com/franktucci)
+
 
 </div>
 
@@ -123,7 +124,7 @@ Together, we can make Basically Accurate Simulator Endpoints -- for Ball **bette
 First off, thanks for taking the time to contribute! Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make will benefit everybody else and are **greatly appreciated**.
 
 
-Please read [our contribution guidelines](docs/CONTRIBUTING.md), and thank you for being involved!
+Please read [our contribution guidelines](CONTRIBUTING.md), and thank you for being involved!
 
 ## Authors & contributors
 
@@ -136,7 +137,7 @@ For a full list of all authors and contributors, see [the contributors page](htt
 Basically Accurate Simulator Endpoints -- for Ball follows good practices of security, but 100% security cannot be assured.
 Basically Accurate Simulator Endpoints -- for Ball is provided **"as is"** without any **warranty**. Use at your own risk.
 
-_For more information and to report security issues, please refer to our [security documentation](docs/SECURITY.md)._
+_For more information and to report security issues, please refer to our [security documentation](SECURITY.md)._
 
 ## License
 
