@@ -54,7 +54,6 @@
 
 <table><tr><td>
 
-> **[?]**
 > Battle against friends, create teams with different mlb players (or make your own!). Basically Accurate Simulator Endpoints -- for Ball
 > offers rich and complex functionality for your baseball simulating needs. Simply register using the /users/ endpoint, and choose from
 > hundreds of players with real life stats from the 2022 season. See how your own players move up (or down) the standings as they continue
@@ -64,7 +63,6 @@
 <summary>Screenshots</summary>
 <br>
 
-> **[?]**
 > Please provide your screenshots here.
 
 |                          Create a Team                           |                          Simulate a Game                          |                   Check your Player's Standings                   |
@@ -77,26 +75,21 @@
 
 ### Built With
 
-> **[?]**
-> PostgreSQL database with sqlalchemy querybuilder functionality in python
+> PostgresSQL database with sqlalchemy querybuilder functionality in python
 
 ## Getting Started
 
 ### Prerequisites
 
-> **[?]**
-> What are the project requirements/dependencies?
+> The API requires a stable internet connection and an interest or curiosity in baseball!
 
 ### Installation
 
-> **[?]**
-> Describe how to install and get started with the project.
+> No need to install anything! Simply make an account and you're all set.
 
 ## Usage
 
-> **[?]**
-> How does one go about using it?
-> Provide various use cases and code examples here.
+> A user is able to add or delete players to a self-made team and test those teams against other teams in a special simulation function.
 
 ## Roadmap
 
@@ -108,8 +101,7 @@ See the [open issues](https://github.com/franktucci/baseball-stats-api/issues) f
 
 ## Support
 
-> **[?]**
-> Provide additional ways to contact the project maintainer/maintainers.
+> Contact us at rcaler@calpoly.edu, ftucci@calpoly.edu, or stomerho@calpoly.edu
 
 Reach out to the maintainer at one of the following places:
 
@@ -154,5 +146,4 @@ See [LICENSE](LICENSE) for more information.
 
 ## Acknowledgements
 
-> **[?]**
 > Data gathered from [retrosheet](https://www.retrosheet.org)
