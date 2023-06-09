@@ -42,8 +42,8 @@ app = FastAPI(
     description=description,
     version="0.0.1",
     contact={
-        "name": "Randall Caler and Frank Tucci",
-        "email": "rcaler@calpoly.edu, ftucci@calpoly.edu",
+        "name": "Randall Caler, Frank Tucci, and Sean Tomer",
+        "email": "rcaler@calpoly.edu, ftucci@calpoly.edu, ",
     },
     openapi_tags=tags_metadata,
 )

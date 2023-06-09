@@ -8,22 +8,22 @@
 <div align="center">
   Basically Accurate Simulator Endpoints -- for Ball
   <br />
-  <a href="https://github.com/franktucci/baseball-stats-api/tree/staging/images"><strong>Explore the screenshots »</strong></a>
+  <a href="https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball/tree/staging/images"><strong>Explore the screenshots »</strong></a>
   <br />
   <br />
-  <a href="https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
+  <a href="https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
   ·
-  <a href="https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feat%3A+">Request a Feature</a>
+  <a href="https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feat%3A+">Request a Feature</a>
   ·
-  <a href="https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=question&template=04_SUPPORT_QUESTION.md&title=support%3A+">Ask a Question</a>
+  <a href="https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball/issues/new?assignees=&labels=question&template=04_SUPPORT_QUESTION.md&title=support%3A+">Ask a Question</a>
 </div>
 
 <div align="center">
 <br />
 
-[![Project license MIT License](https://img.shields.io/bower/l/this)](https://github.com/franktucci/baseball-stats-api/blob/staging/LICENSE)
+[![Project license MIT License](https://img.shields.io/bower/l/this)](https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball/blob/staging/LICENSE)
 
-[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/franktucci/baseball-stats-api/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 [![code with love by franktucci](https://img.shields.io/badge/made%20with%20%E2%99%A5%20by-franktucci-ff1414.svg?style=flat-square)](https://github.com/franktucci)
 [![code with love by randallcaler](https://img.shields.io/badge/made%20with%20%E2%99%A5%20by-randalcaler-ff1414.svg?style=flat-square)](https://github.com/randallcaler)
 [![code with love by smtomer](https://img.shields.io/badge/made%20with%20%E2%99%A5%20by-smtomer-ff1414.svg?style=flat-square)](https://github.com/smtomer)
@@ -84,7 +84,7 @@
 ## Getting Started
 
 ### Prerequisites
-
+basically-accurate-simulator-endpoints-for-ball
 > The API requires a stable internet connection and an interest or curiosity in baseball!
 
 ### Installation
@@ -97,11 +97,11 @@
 
 ## Roadmap
 
-See the [open issues](https://github.com/franktucci/baseball-stats-api/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball/issues) for a list of proposed features (and known issues).
 
-- [Top Feature Requests](https://github.com/franktucci/baseball-stats-api/issues?q=label%3Aenhancement+is%3Aopen+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
-- [Top Bugs](https://github.com/franktucci/baseball-stats-api/issues?q=is%3Aissue+is%3Aopen+label%3Abug+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
-- [Newest Bugs](https://github.com/franktucci/baseball-stats-api/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
+- [Top Feature Requests](https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball/issues?q=label%3Aenhancement+is%3Aopen+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
+- [Top Bugs](https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball/issues?q=is%3Aissue+is%3Aopen+label%3Abug+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
+- [Newest Bugs](https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
 
 ## Support
 
@@ -109,14 +109,14 @@ See the [open issues](https://github.com/franktucci/baseball-stats-api/issues) f
 
 Reach out to the maintainer at one of the following places:
 
-- [GitHub issues](https://github.com/franktucci/baseball-stats-api/issues/new?assignees=&labels=question&template=04_SUPPORT_QUESTION.md&title=support%3A+)
+- [GitHub issues](https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball/issues/new?assignees=&labels=question&template=04_SUPPORT_QUESTION.md&title=support%3A+)
 - Contact options listed on [this GitHub profile](https://github.com/franktucci)
 
 ## Project assistance
 
 If you want to say **thank you** or/and support active development of Basically Accurate Simulator Endpoints -- for Ball:
 
-- Add a [GitHub Star](https://github.com/franktucci/baseball-stats-api) to the project.
+- Add a [GitHub Star](https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball) to the project.
 - Tweet about the Basically Accurate Simulator Endpoints -- for Ball.
 - Write interesting articles about the project on [Dev.to](https://dev.to/), [Medium](https://medium.com/) or your personal blog.
 
@@ -133,7 +133,7 @@ Please read [our contribution guidelines](CONTRIBUTING.md), and thank you for be
 
 The original setup of this repository is by [Frank Tucci](https://github.com/franktucci), [Randall Caler](https://github.com/franktucci), and [Sean Tomer](https://github.com/smtomer).
 
-For a full list of all authors and contributors, see [the contributors page](https://github.com/franktucci/baseball-stats-api/contributors).
+For a full list of all authors and contributors, see [the contributors page](https://github.com/franktucci/basically-accurate-simulator-endpoints-for-ball/contributors).
 
 ## Security
 
