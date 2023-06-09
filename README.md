@@ -68,9 +68,9 @@
 
 > Simply go to /docs/ to try it out!
 
-|                           Create a Team                           |                          Simulate a Game                           |                   Check your Player's Standings                    |
-|:-----------------------------------------------------------------:|:------------------------------------------------------------------:|:------------------------------------------------------------------:|
-| <img src="images/screenshot1.png" title="Home Page" width="100%"> | <img src="images/screenshot2.png" title="Login Page" width="100%"> | <img src="images/screenshot3.png" title="Login Page" width="100%"> |
+|                          Create a Team                           |                          Simulate a Game                          |                   Check your Player's Standings                   |
+|:----------------------------------------------------------------:|:-----------------------------------------------------------------:|:-----------------------------------------------------------------:|
+| <img src="images/screenshot1.png" title="Home Page" width="25%"> | <img src="images/screenshot2.png" title="Login Page" width="25%"> | <img src="images/screenshot3.png" title="Login Page" width="25%"> |
 
 </details>
 
