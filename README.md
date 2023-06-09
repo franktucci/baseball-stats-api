@@ -24,7 +24,9 @@
 [![Project license MIT License](https://img.shields.io/bower/l/this)](https://github.com/franktucci/baseball-stats-api/blob/staging/LICENSE)
 
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/franktucci/baseball-stats-api/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
-[![code with love by franktucci](https://img.shields.io/badge/%3C%2F%3E%20with%20%E2%99%A5%20by-franktucci-ff1414.svg?style=flat-square)](https://github.com/franktucci)
+[![code with love by franktucci](https://img.shields.io/badge/made%20with%20%E2%99%A5%20by-franktucci-ff1414.svg?style=flat-square)](https://github.com/franktucci)
+[![code with love by randallcaler](https://img.shields.io/badge/made%20with%20%E2%99%A5%20by-randalcaler-ff1414.svg?style=flat-square)](https://github.com/randallcaler)
+[![code with love by smtomer](https://img.shields.io/badge/made%20with%20%E2%99%A5%20by-smtomer-ff1414.svg?style=flat-square)](https://github.com/smtomer)
 
 
 </div>
@@ -56,19 +58,19 @@
 <table><tr><td>
 
 > Battle against friends, create teams with different mlb players (or make your own!). Basically Accurate Simulator Endpoints -- for Ball
-> offers rich and complex functionality for your baseball simulating needs. Simply register using the /users/ endpoint, and choose from
-> hundreds of players with real life stats from the 2022 season. See how your own players move up (or down) the standings as they continue
+> offers rich and complex functionality for simulating fake baseball games. Simply register your user, and choose from
+> hundreds of players with real life players with stats from the 2022 season, or create your own. See how your players stack up against your friends
 > to play.
 
 <details>
 <summary>Screenshots</summary>
 <br>
 
-> Please provide your screenshots here.
+> Simply go to /docs/ to try it out!
 
-|                          Create a Team                           |                          Simulate a Game                          |                   Check your Player's Standings                   |
-|:----------------------------------------------------------------:|:-----------------------------------------------------------------:|:-----------------------------------------------------------------:|
-| <img src="images/screenshot.png" title="Home Page" width="100%"> | <img src="images/screenshot.png" title="Login Page" width="100%"> | <img src="images/screenshot.png" title="Login Page" width="100%"> |
+|                           Create a Team                           |                          Simulate a Game                           |                   Check your Player's Standings                    |
+|:-----------------------------------------------------------------:|:------------------------------------------------------------------:|:------------------------------------------------------------------:|
+| <img src="images/screenshot1.png" title="Home Page" width="100%"> | <img src="images/screenshot2.png" title="Login Page" width="100%"> | <img src="images/screenshot3.png" title="Login Page" width="100%"> |
 
 </details>
 
@@ -76,7 +78,8 @@
 
 ### Built With
 
-> PostgresSQL database with sqlalchemy querybuilder functionality in python
+> * PostgreSQL database interfaced with sqlalchemy querybuilder in python
+> * FastAPI web framework
 
 ## Getting Started
 
