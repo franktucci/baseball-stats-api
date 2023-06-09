@@ -93,7 +93,7 @@ basically-accurate-simulator-endpoints-for-ball
 
 ## Usage
 
-<details open><summary>GET /players/{player_id}</summary>
+<details><summary>GET /players/{player_id}</summary>
 
     This endpoint returns a player's stats.
     * `player_id`: The internal id of the player. Can be used to query the
@@ -117,7 +117,7 @@ basically-accurate-simulator-endpoints-for-ball
     * `on_base_percent`: Calculated (Hit + Ball + HBP) / (At-Bat + Walk + HBP + Sacrifice-Fly)
     * `batting_average`: Calculated Hit / At-bat
 </details>
-<details open><summary>POST /players/</summary>
+<details><summary>POST /players/</summary>
 
     This endpoint takes in a `first_name`, `last_name`, `team_id`, `created_by`,
     `password`, and `position`.
@@ -126,7 +126,7 @@ basically-accurate-simulator-endpoints-for-ball
 
     The endpoint returns the id of the resulting player that was created.
 </details>
-<details open><summary>GET /players/</summary>
+<details><summary>GET /players/</summary>
 
     This endpoint returns a list of players. For each player it returns:
 
@@ -153,13 +153,13 @@ basically-accurate-simulator-endpoints-for-ball
     * `name` - Sort by first name alphabetically.
 
 </details>
-<details open><summary>DELETE /players/{player_id}</summary>
+<details><summary>DELETE /players/{player_id}</summary>
 
     This endpoint deletes a player. It takes in a `password`.
 
     The endpoint returns the id of the resulting player that was deleted.
 </details>
-<details open><summary>GET /teams/{team_id}</summary>
+<details><summary>GET /teams/{team_id}</summary>
 
     This endpoint returns a team's information. It returns:
     * `team_id`: The internal id of the team. Can be used to query the
@@ -170,13 +170,13 @@ basically-accurate-simulator-endpoints-for-ball
     * `players`: A list of the team's player_id's. Can be used to query the
       `/players/{player_id}` endpoint.
 </details>
-<details open><summary>POST /teams/{team_id}</summary>
+<details><summary>POST /teams/{team_id}</summary>
 
     This endpoint adds a team. It takes in a `team_name`, `team_city`, `created_by`, and `password`.
 
     The endpoint returns the id of the resulting team that was created.
 </details>
-<details open><summary>GET /teams/</summary>
+<details><summary>GET /teams/</summary>
 
     This endpoint returns a list of teams. For each team it returns:
 
@@ -196,13 +196,13 @@ basically-accurate-simulator-endpoints-for-ball
     * `id` - Sort by team_id.
     * `name` - Sort by team name alphabetically.
 </details>
-<details open><summary>DELETE /teams/{team_id}</summary>
+<details><summary>DELETE /teams/{team_id}</summary>
 
     This endpoint deletes a team. It takes in a `password`.
 
     The endpoint returns the id of the resulting team that was deleted.
 </details>
-<details open><summary>GET /games/{game_id}</summary>
+<details><summary>GET /games/{game_id}</summary>
 
     This endpoint returns a game. It returns:
     * `game_id`: The internal id of the team. Can be used to query the
@@ -213,7 +213,7 @@ basically-accurate-simulator-endpoints-for-ball
     * `home_score`: The score of the home team.
     * `away_score`: The score of the away team.
 </details>
-<details open><summary>POST /games/</summary>
+<details><summary>POST /games/</summary>
 
     This endpoint takes in `created by`, `password`, and two lineup objects. A lineup consists of:
     * `team_id`: The internal id of the team. Can be used to query the `/teams/{team_id}` endpoint.
@@ -232,7 +232,7 @@ basically-accurate-simulator-endpoints-for-ball
     * `player`: Player name of batter.
     * `happening`: What the player did. Some examples include Walk, Strikeout, Home Run, etc.
 </details>
-<details open><summary>POST /users/</summary>
+<details><summary>POST /users/</summary>
 
     This endpoint takes in a `username` and `password`. The player is represented
     by a username and a password that is validated for user-level operations (Please don't input, like,
@@ -242,7 +242,7 @@ basically-accurate-simulator-endpoints-for-ball
 
     The endpoint returns the username of the resulting user that was created.
 </details>
-<details open><summary>DELETE /users/{username}</summary>
+<details><summary>DELETE /users/{username}</summary>
 
     This endpoint deletes a user. It takes in a `password`.
 
