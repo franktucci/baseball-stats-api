@@ -12,7 +12,7 @@ router = APIRouter()
 @router.get("/teams/{team_id}", tags=["teams"])
 def get_team(team_id: int):
     """
-    This endpoint returns a team's information in 2022. It returns:
+    This endpoint returns a team's information. It returns:
     * `team_id`: The internal id of the team. Can be used to query the
       `/teams/{team_id}` endpoint.
     * `created_by`: The user who created the team. Is null for real-life teams.

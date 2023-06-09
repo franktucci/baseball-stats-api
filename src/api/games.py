@@ -36,7 +36,7 @@ class EventCodes(Enum):
 @router.get("/games/{game_id}", tags=["games"])
 def get_game(game_id: int):
     """
-    This endpoint returns a game in 2022. It returns:
+    This endpoint returns a game. It returns:
     * `game_id`: The internal id of the team. Can be used to query the
       `/games/{game_id}` endpoint.
     * `created_by`: The user who created the team. Is null for real-life games.

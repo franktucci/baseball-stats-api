@@ -38,7 +38,7 @@ def filter_helper(e):
 @router.get("/players/{player_id}", tags=["players"])
 def get_player(player_id: int):
     """
-    This endpoint returns a player's stats for 2022.
+    This endpoint returns a player's stats.
 
     * `player_id`: The internal id of the player. Can be used to query the
       `/players/{player_id}` endpoint.
@@ -208,7 +208,7 @@ def list_players(
     show: players_show_options = players_show_options.fake,
 ):
     """
-    This endpoint returns a list of players in 2022. For each player it returns:
+    This endpoint returns a list of players. For each player it returns:
 
     * `player_id`: The internal id of the player. Can be used to query the
       `/players/{player_id}` endpoint.
